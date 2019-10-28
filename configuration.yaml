@@ -1,0 +1,78 @@
+route:
+  drop:
+    - labels:
+        service: non-critical
+    - kind: Pod
+      namespace: ^kube-system
+      labels:
+        version: beta
+    - reason: A^
+      count: 1
+    - type: Normal
+  match:
+    - reciever: elasticsearch
+      fields:
+        cluster: sre-delivery-pool
+  routes:
+    - match:
+        - labels:
+            version: opsgenie-sre
+      routes:
+        match:
+          - env: prod
+          - labels:
+              env: eu
+              reciever: opsgenie-eu
+          - labels:
+              env: prod
+              reciever: opsgenie-prod
+    - match:
+      - type: Warning
+        kind: Pod
+        message: ^OOM^
+      message: "Your pod has been killed"
+      reciever: slack
+
+receivers:
+  - name: og-sre-team
+    opsgenie:
+      apikey: {{ globals.opsgenie.apikey }}
+      priority: P3
+      description: {{ event.name }}
+      tags:
+        - {{ event.labels.service }}
+        - event-exporte
+        - k8s
+  - name: slack
+    slack:
+      apikey: xoxo-30
+      message: {{ event.message }}
+        channel: {{ event.labels.user }}
+  - name: elasticsearch
+    elasticsearch:
+      host: https://my-elasticsearch-host.com
+      username: 123
+      password: hello-world
+      index: index
+      eventId: true
+  - name: firehose
+    firehose:
+      name: kubernetes-logs
+      region: us-west-2
+      access_key: 34
+      secret_key: yes
+  - name: http
+    webhook:
+      url: https://osman.com?age=30
+      bulksize: 50
+  - name: kafka
+    kafka:
+      brokers:
+        - localhost:9092
+      topic: k8s-events
+      data: {{ event }}
+  - name: kinesis
+    kinesis:
+      region: us-west-2
+      streamName: k8e-events
+      data: {{ event }}
