@@ -1,6 +1,10 @@
 package exporter
 
-import "github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+import (
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"github.com/rs/zerolog/log"
+	"reflect"
+)
 
 // Engine is responsible for initializing the receivers from sinks
 type Engine struct {
@@ -10,8 +14,17 @@ type Engine struct {
 
 func NewEngine(config *Config, registry ReceiverRegistry) *Engine {
 	for _, v := range config.Receivers {
+		sink, err := v.GetSink()
+		if err != nil {
+			log.Fatal().Err(err).Str("name", v.Name).Msg("Cannot initialize sink")
+		}
 
-		registry.Register(v.Name, v.GetSink())
+		log.Info().
+			Str("name", v.Name).
+			Str("type", reflect.TypeOf(sink).String()).
+			Msg("Registering sink")
+
+		registry.Register(v.Name, sink)
 	}
 
 	return &Engine{

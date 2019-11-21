@@ -1,0 +1,16 @@
+route:
+  match:
+    - receiver: "alerts"
+receivers:
+  - name: "alerts"
+    opsgenie:
+      apikey: xxx
+      priority: "P3"
+      message: "Event {{ .Reason }} for {{ .InvolvedObject.Namespace }}/{{ .InvolvedObject.Name }} on K8s cluster"
+      alias: "{{ .UID }}"
+      description: "<pre>{{ toPrettyJson . }}</pre>"
+      tags:
+        - "event"
+        - "{{ .Reason }}"
+        - "{{ .InvolvedObject.Kind }}"
+        - "{{ .InvolvedObject.Name }}"

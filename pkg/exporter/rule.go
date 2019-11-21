@@ -16,6 +16,7 @@ func matchString(pattern, s string) bool {
 // Rule is for matching an event
 type Rule struct {
 	Labels    map[string]string
+	Message   string
 	Kind      string
 	Namespace string
 	Reason    string
@@ -33,7 +34,8 @@ type Rule struct {
 func (r *Rule) MatchesEvent(ev *kube.EnhancedEvent) bool {
 	// These rules are just basic comparison rules, if one of them fails, it means the event does not match the rule
 	rules := [][2]string{
-		{r.Kind, ev.Kind},
+		{r.Message, ev.Message},
+		{r.Kind, ev.InvolvedObject.Kind},
 		{r.Namespace, ev.Namespace},
 		{r.Reason, ev.Reason},
 		{r.Type, ev.Type},

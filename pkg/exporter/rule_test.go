@@ -110,7 +110,7 @@ func TestComplexRuleNoMatch(t *testing.T) {
 
 	r := Rule{
 		Namespace: "kube-system",
-		Type:      "Pod",
+		Type:      "Warning",
 		Labels: map[string]string{
 			"env":     "prod",
 			"version": "alpha",
@@ -123,7 +123,7 @@ func TestComplexRuleNoMatch(t *testing.T) {
 func TestComplexRuleMatches(t *testing.T) {
 	ev := &kube.EnhancedEvent{}
 	ev.Namespace = "kube-system"
-	ev.Type = "Pod"
+	ev.InvolvedObject.Kind = "Pod"
 	ev.InvolvedObject.Labels = map[string]string{
 		"env":     "prod",
 		"version": "alpha",
@@ -131,7 +131,7 @@ func TestComplexRuleMatches(t *testing.T) {
 
 	r := Rule{
 		Namespace: "kube-system",
-		Type:      "Pod",
+		Kind:      "Pod",
 		Labels: map[string]string{
 			"env":     "prod",
 			"version": "alpha",
@@ -141,11 +141,10 @@ func TestComplexRuleMatches(t *testing.T) {
 	assert.True(t, r.MatchesEvent(ev))
 }
 
-
 func TestComplexRuleMatchesRegexp(t *testing.T) {
 	ev := &kube.EnhancedEvent{}
 	ev.Namespace = "kube-system"
-	ev.Type = "Pod"
+	ev.InvolvedObject.Kind = "Pod"
 	ev.InvolvedObject.Labels = map[string]string{
 		"env":     "prod",
 		"version": "alpha",
@@ -153,7 +152,7 @@ func TestComplexRuleMatchesRegexp(t *testing.T) {
 
 	r := Rule{
 		Namespace: "kube*",
-		Type:      "Po*",
+		Kind:      "Po*",
 		Labels: map[string]string{
 			"env":     "prod",
 			"version": "alpha|beta",
@@ -162,7 +161,6 @@ func TestComplexRuleMatchesRegexp(t *testing.T) {
 
 	assert.True(t, r.MatchesEvent(ev))
 }
-
 
 func TestComplexRuleNoMatchRegexp(t *testing.T) {
 	ev := &kube.EnhancedEvent{}
@@ -183,4 +181,18 @@ func TestComplexRuleNoMatchRegexp(t *testing.T) {
 	}
 
 	assert.False(t, r.MatchesEvent(ev))
+}
+
+func TestMessageRegexp(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.Namespace = "default"
+	ev.Type = "Pod"
+	ev.Message = "Successfully pulled image \"nginx:latest\""
+
+	r := Rule{
+		Type:    "Pod",
+		Message: "pulled.*nginx.*",
+	}
+
+	assert.True(t, r.MatchesEvent(ev))
 }

@@ -1,9 +1,11 @@
 package exporter
 
 import (
+	"context"
 	"fmt"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/sinks"
+	"github.com/rs/zerolog/log"
 )
 
 // ChannelBasedReceiverRegistry creates two channels for each receiver. One is for receiving events and other one is
@@ -39,7 +41,10 @@ func (r *ChannelBasedReceiverRegistry) Register(name string, receiver sinks.Sink
 		for {
 			select {
 			case ev := <-ch:
-				_ = receiver.Send(&ev)
+				err := receiver.Send(context.Background(), &ev)
+				if err != nil {
+					log.Debug().Err(err).Str("sink", name).Str("event", string(ev.UID)).Msg("Cannot send event")
+				}
 			case <-exitCh:
 				fmt.Println("killing receiver", receiver)
 				break

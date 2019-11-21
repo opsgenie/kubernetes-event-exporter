@@ -1,6 +1,7 @@
 package sinks
 
 import (
+	"context"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 )
 
@@ -8,7 +9,8 @@ import (
 // transform it depending on its configuration and submit it. Error handling for retries etc. should be handled inside
 // for now.
 type Sink interface {
-	Send(*kube.EnhancedEvent) error
+	Send(ctx context.Context, ev *kube.EnhancedEvent) error
+	Close()
 }
 
 // BatchSink is an extension Sink that can handle batch events.

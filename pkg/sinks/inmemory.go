@@ -1,6 +1,7 @@
 package sinks
 
 import (
+	"context"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 )
 
@@ -13,7 +14,13 @@ type InMemory struct {
 	Config *InMemoryConfig
 }
 
-func (i *InMemory) Send(ev *kube.EnhancedEvent) error {
+func (i *InMemory) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	i.Events = append(i.Events, ev)
 	return nil
 }
+
+func (i *InMemory) Close() {
+	// No-op
+}
+
+

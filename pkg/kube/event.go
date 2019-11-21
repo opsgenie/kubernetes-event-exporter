@@ -3,17 +3,18 @@ package kube
 import (
 	"encoding/json"
 	corev1 "k8s.io/api/core/v1"
+	"time"
 )
 
 type EnhancedEvent struct {
-	corev1.Event
-	InvolvedObject EnhancedObjectReference
+	corev1.Event   `json:",inline"`
+	InvolvedObject EnhancedObjectReference `json:"involvedObject"`
 }
 
 type EnhancedObjectReference struct {
-	corev1.ObjectReference
+	corev1.ObjectReference `json:",inline"`
 	// TODO(makin) Should we also get its annotations? But last-applied-configuration should be dropped, what else?
-	Labels map[string]string
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 // ToJSON does not return an error because we are %99 confident it is JSON serializable.
@@ -21,4 +22,8 @@ type EnhancedObjectReference struct {
 func (e *EnhancedEvent) ToJSON() []byte {
 	b, _ := json.Marshal(e)
 	return b
+}
+
+func(e *EnhancedEvent) GetTimestampMs() int64 {
+	return e.FirstTimestamp.UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond))
 }

@@ -1,60 +1,55 @@
 package main
 
 import (
-	"fmt"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/cache"
-	"k8s.io/client-go/tools/clientcmd"
-	"log"
+	"flag"
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/exporter"
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os"
-	"path/filepath"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
+var (
+	conf = flag.String("conf", "config.yaml", "The config path file")
+)
+
 func main() {
-	config, err := clientcmd.BuildConfigFromFlags("", filepath.Join(os.Getenv("HOME"), ".kube", "config"))
+	flag.Parse()
+
+	log.Logger = log.With().Caller().Logger().Output(zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: time.RFC3339,
+	}).Level(zerolog.InfoLevel)
+
+	kubeconfig, err := kube.GetKubernetesConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("cannot get kubeconfig")
 	}
 
-	clientset := kubernetes.NewForConfigOrDie(config)
-	factory := informers.NewSharedInformerFactory(clientset, 0)
-	informer := factory.Core().V1().Events().Informer()
-	stopper := make(chan struct{})
-	defer close(stopper)
+	b, err := ioutil.ReadFile(*conf)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot read config file")
+	}
+	var cfg exporter.Config
+	err = yaml.Unmarshal(b, &cfg)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot parse config to YAML")
+	}
 
-	// Kubernetes serves an utility to handle API crashes
-	defer runtime.HandleCrash()
+	engine := exporter.NewEngine(&cfg, &exporter.ChannelBasedReceiverRegistry{})
+	w := kube.NewEventWatcher(kubeconfig, engine.OnEvent)
+	w.Start()
 
-	// This is the part where your custom code gets triggered based on the
-	// event that the shared informer catches
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
-	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		// When a new pod gets created
-		AddFunc: func(obj interface{}) {
-			event := obj.(*corev1.Event)
-			// It's probably an old event we are catching
-			if time.Now().Sub(event.CreationTimestamp.Time) > time.Second*10 {
-				return
-			}
-			fmt.Println("add", event.Namespace, event.Reason, event.Message)
-		},
-		// When a pod gets updated
-		UpdateFunc: func(oldObj interface{}, obj interface{}) {
-			event := obj.(*corev1.Event)
-			fmt.Println("update",  event.Namespace, event.Reason, event.Message, event.Count)
-		},
-		// When a pod gets deleted
-		DeleteFunc: func(interface{}) {
-
-		},
-	})
-
-	// You need to start the informer, in my case, it runs in the background
-	go informer.Run(stopper)
-
-	time.Sleep(time.Minute * 10)
+	sig := <-c
+	log.Info().Str("signal", sig.String()).Msg("Received signal to exit")
+	defer close(c)
+	w.Stop()
 }

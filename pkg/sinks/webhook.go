@@ -2,8 +2,10 @@ package sinks
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -19,15 +21,27 @@ type Webhook struct {
 	Config *WebhookConfig
 }
 
-func (w *Webhook) Send(ev *kube.EnhancedEvent) error {
-	resp, err := http.Post(w.Config.Endpoint, "application/json", bytes.NewReader(ev.ToJSON()))
+func (w *Webhook) Close() {
+	// No-op
+}
+
+func (w *Webhook) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
+	resp, err := http.Post(
+		w.Config.Endpoint,
+		"application/json",
+		bytes.NewReader(ev.ToJSON()),
+	)
+
 	if err != nil {
 		return nil
 	}
 
-	// TODO: make this pretty please
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+
+	// TODO: make this prettier please
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("not 200")
+		return errors.New("not 200: " + string(body))
 	}
 
 	return nil
