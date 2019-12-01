@@ -54,7 +54,7 @@ func TestBasicRegexRule(t *testing.T) {
 
 func TestOneLabelMatchesRule(t *testing.T) {
 	ev := &kube.EnhancedEvent{}
-	ev.Labels = map[string]string{
+	ev.InvolvedObject.Labels = map[string]string{
 		"env": "prod",
 	}
 
@@ -65,6 +65,21 @@ func TestOneLabelMatchesRule(t *testing.T) {
 	}
 
 	assert.True(t, r.MatchesEvent(ev))
+}
+
+func TestOneLabelDoesNotMatchRule(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.InvolvedObject.Labels = map[string]string{
+		"env": "lab",
+	}
+
+	r := Rule{
+		Labels: map[string]string{
+			"env": "prod",
+		},
+	}
+
+	assert.False(t, r.MatchesEvent(ev))
 }
 
 func TestTwoLabelMatchesRule(t *testing.T) {
@@ -89,6 +104,23 @@ func TestTwoLabelRequiredRule(t *testing.T) {
 	ev.InvolvedObject.Labels = map[string]string{
 		"env":     "prod",
 		"version": "alpha",
+	}
+
+	r := Rule{
+		Labels: map[string]string{
+			"env":     "prod",
+			"version": "beta",
+		},
+	}
+
+	assert.False(t, r.MatchesEvent(ev))
+}
+
+func TestTwoLabelRequiredOneMissingRule(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.InvolvedObject.Labels = map[string]string{
+		"age":     "very-old",
+		"version": "beta",
 	}
 
 	r := Rule{
@@ -195,4 +227,20 @@ func TestMessageRegexp(t *testing.T) {
 	}
 
 	assert.True(t, r.MatchesEvent(ev))
+}
+
+func TestCount(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.Namespace = "default"
+	ev.Type = "Pod"
+	ev.Message = "Successfully pulled image \"nginx:latest\""
+	ev.Count = 5
+
+	r := Rule{
+		Type:    "Pod",
+		Message: "pulled.*nginx.*",
+		MinCount: 30,
+	}
+
+	assert.False(t, r.MatchesEvent(ev))
 }

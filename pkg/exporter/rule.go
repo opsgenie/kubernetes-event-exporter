@@ -15,17 +15,17 @@ func matchString(pattern, s string) bool {
 
 // Rule is for matching an event
 type Rule struct {
-	Labels    map[string]string
-	Message   string
-	Kind      string
-	Namespace string
-	Reason    string
-	Type      string
-	MinCount  int
-	MaxCount  int
-	Component string
-	Host      string
-	Receiver  string
+	Labels     map[string]string
+	Message    string
+	APIVersion string
+	Kind       string
+	Namespace  string
+	Reason     string
+	Type       string
+	MinCount   int32
+	Component  string
+	Host       string
+	Receiver   string
 }
 
 // MatchesEvent compares the rule to an event and returns a boolean value to indicate
@@ -35,6 +35,7 @@ func (r *Rule) MatchesEvent(ev *kube.EnhancedEvent) bool {
 	// These rules are just basic comparison rules, if one of them fails, it means the event does not match the rule
 	rules := [][2]string{
 		{r.Message, ev.Message},
+		{r.APIVersion, ev.InvolvedObject.APIVersion},
 		{r.Kind, ev.InvolvedObject.Kind},
 		{r.Namespace, ev.Namespace},
 		{r.Reason, ev.Reason},
@@ -57,13 +58,25 @@ func (r *Rule) MatchesEvent(ev *kube.EnhancedEvent) bool {
 	// Labels are also mutually exclusive, they all need to be present
 	if r.Labels != nil && len(r.Labels) > 0 {
 		for k, v := range r.Labels {
-			matches := matchString(ev.InvolvedObject.Labels[k], v)
-			if !matches {
+			if val, ok := ev.InvolvedObject.Labels[k]; !ok {
 				return false
+			} else {
+				matches := matchString(val, v)
+				if !matches {
+					return false
+				}
 			}
 		}
 		return true
 	}
+
+	// If minCount is not given via a config, it's already 0 and the count is already 1 and this passes.
+	if ev.Count >= r.MinCount {
+		return true
+	} else {
+		return false
+	}
+
 	// If it failed every step, it must match because our matchers are limiting
 	return true
 }

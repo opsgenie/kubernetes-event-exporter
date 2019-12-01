@@ -11,14 +11,16 @@ import (
 
 type WebhookConfig struct {
 	Endpoint string
+	Layout   map[string]interface{}
+	Headers  map[string]string
 }
 
-func (w *WebhookConfig) Validate() error {
-	return nil
+func NewWebhook(cfg *WebhookConfig) (Sink, error) {
+	return &Webhook{cfg: cfg}, nil
 }
 
 type Webhook struct {
-	Config *WebhookConfig
+	cfg *WebhookConfig
 }
 
 func (w *Webhook) Close() {
@@ -26,12 +28,21 @@ func (w *Webhook) Close() {
 }
 
 func (w *Webhook) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
-	resp, err := http.Post(
-		w.Config.Endpoint,
-		"application/json",
-		bytes.NewReader(ev.ToJSON()),
-	)
+	reqBody, err := serializeEventWithLayout(w.cfg.Layout, ev)
+	if err != nil {
+		return err
+	}
 
+	req, err := http.NewRequest(http.MethodPost, w.cfg.Endpoint, bytes.NewReader(reqBody))
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	for k, v := range w.cfg.Headers {
+		req.Header.Add(k, v)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil
 	}

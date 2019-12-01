@@ -61,3 +61,21 @@ func convertLayoutTemplate(layout map[string]interface{}, ev *kube.EnhancedEvent
 	}
 	return result, nil
 }
+
+func serializeEventWithLayout(layout map[string]interface{}, ev *kube.EnhancedEvent) ([]byte, error) {
+	var toSend []byte
+	if layout != nil {
+		res, err := convertLayoutTemplate(layout, ev)
+		if err != nil {
+			return nil, err
+		}
+
+		toSend, err = json.Marshal(res)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		toSend = ev.ToJSON()
+	}
+	return toSend, nil
+}

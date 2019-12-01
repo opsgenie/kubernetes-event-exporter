@@ -2,7 +2,6 @@ package exporter
 
 import (
 	"context"
-	"fmt"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/sinks"
 	"github.com/rs/zerolog/log"
@@ -46,7 +45,7 @@ func (r *ChannelBasedReceiverRegistry) Register(name string, receiver sinks.Sink
 					log.Debug().Err(err).Str("sink", name).Str("event", string(ev.UID)).Msg("Cannot send event")
 				}
 			case <-exitCh:
-				fmt.Println("killing receiver", receiver)
+				log.Info().Str("receiver", name).Msg("Killing the receiver")
 				break
 			}
 		}
