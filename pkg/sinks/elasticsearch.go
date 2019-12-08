@@ -11,7 +11,7 @@ import (
 
 type ElasticsearchConfig struct {
 	// Connection specific
-	Addresses []     string
+	Addresses []string
 	Username  string
 	Password  string
 	CloudID   string

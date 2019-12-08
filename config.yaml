@@ -1,3 +1,4 @@
+loglevel: DEBUG
 route:
   match:
     - receiver: "alerts"
@@ -14,3 +15,22 @@ receivers:
         - "{{ .Reason }}"
         - "{{ .InvolvedObject.Kind }}"
         - "{{ .InvolvedObject.Name }}"
+  - name: appMetric
+    kinesis:
+      region: us-west-2
+      streamName: event-pipeline
+      layout:
+        region: "us-west-2"
+        eventType: "kubeevent"
+        createdAt: "{{ .GetTimestampMs }}"
+        details:
+          message: "{{ .Message }}"
+          reason: "{{ .Reason }}"
+          type: "{{ .Type }}"
+          count: "{{ .Count }}"
+          kind: "{{ .InvolvedObject.Kind }}"
+          name: "{{ .InvolvedObject.Name }}"
+          namespace: "{{ .Namespace }}"
+          component: "{{ .Source.Component }}"
+          host: "{{ .Source.Host }}"
+          labels: "{{ toJson .InvolvedObject.Labels}}"

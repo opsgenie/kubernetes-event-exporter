@@ -24,7 +24,7 @@ func main() {
 	log.Logger = log.With().Caller().Logger().Output(zerolog.ConsoleWriter{
 		Out:        os.Stdout,
 		TimeFormat: time.RFC3339,
-	}).Level(zerolog.InfoLevel)
+	}).Level(zerolog.DebugLevel)
 
 	kubeconfig, err := kube.GetKubernetesConfig()
 	if err != nil {

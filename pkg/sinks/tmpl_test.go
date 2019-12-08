@@ -18,7 +18,7 @@ func TestLayoutConvert(t *testing.T) {
 	ev.FirstTimestamp = v1.Time{Time: time.Now()}
 
 	layout := map[string]interface{}{
-		"details": map[string]interface{}{
+		"details": map[interface{}]interface{}{
 			"message":   "{{ .Message }}",
 			"kind":      "{{ .InvolvedObject.Kind }}",
 			"name":      "{{ .InvolvedObject.Name }}",

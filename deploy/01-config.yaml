@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: event-exporter-cfg
+  namespace: monitoring
+data:
+  config.yaml: |
+    route:
+      match:
+        - receiver: "dump"
+    receivers:
+      - name: "dump"
+        elasticsearch:
+          addresses:
+          - http://elasticsearch.monitoring.svc.cluster.local:9200
+          index: kube-events
