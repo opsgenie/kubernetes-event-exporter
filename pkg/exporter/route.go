@@ -29,7 +29,6 @@ func (r *Route) ProcessEvent(ev *kube.EnhancedEvent, registry ReceiverRegistry) 
 			}
 		} else {
 			matchesAll = false
-			break
 		}
 	}
 

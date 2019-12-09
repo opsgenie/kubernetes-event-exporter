@@ -18,6 +18,9 @@ type ChannelBasedReceiverRegistry struct {
 
 func (r *ChannelBasedReceiverRegistry) SendEvent(name string, event *kube.EnhancedEvent) {
 	ch := r.ch[name]
+	if ch == nil {
+		log.Error().Str("name", name).Msg("There is no channel")
+	}
 
 	go func() {
 		ch <- *event
@@ -40,9 +43,10 @@ func (r *ChannelBasedReceiverRegistry) Register(name string, receiver sinks.Sink
 		for {
 			select {
 			case ev := <-ch:
+				log.Debug().Str("sink", name).Str("event", ev.Message).Msg("sending event to sink")
 				err := receiver.Send(context.Background(), &ev)
 				if err != nil {
-					log.Debug().Err(err).Str("sink", name).Str("event", string(ev.UID)).Msg("Cannot send event")
+					log.Debug().Err(err).Str("sink", name).Str("event", ev.Message).Msg("Cannot send event")
 				}
 			case <-exitCh:
 				log.Info().Str("receiver", name).Msg("Killing the receiver")

@@ -10,9 +10,9 @@ import (
 )
 
 type KinesisConfig struct {
-	StreamName string
-	Region     string
-	Layout     map[string]interface{}
+	StreamName string                 `yaml:"streamName"`
+	Region     string                 `yaml:"region"`
+	Layout     map[string]interface{} `yaml:"layout"`
 }
 
 type KinesisSink struct {

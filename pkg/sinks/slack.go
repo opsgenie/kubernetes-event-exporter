@@ -4,13 +4,14 @@ import (
 	"context"
 	"github.com/nlopes/slack"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"github.com/rs/zerolog/log"
 )
 
 type SlackConfig struct {
-	Token   string
-	Channel string
-	Message string
-	Fields  map[string]string
+	Token   string            `yaml:"token"`
+	Channel string            `yaml:"channel"`
+	Message string            `yaml:"message"`
+	Fields  map[string]string `yaml:"fields"`
 }
 
 type SlackSink struct {
@@ -54,7 +55,8 @@ func (s *SlackSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 		options = append(options, slack.MsgOptionAttachments(slack.Attachment{Fields: fields}))
 	}
 
-	_, _, _, err = s.client.SendMessageContext(ctx, channel, options...)
+	_ch, _ts, _text, err := s.client.SendMessageContext(ctx, channel, options...)
+	log.Debug().Str("ch", _ch).Str("ts", _ts).Str("text", _text).Err(err).Msg("Slack Response")
 	return err
 }
 

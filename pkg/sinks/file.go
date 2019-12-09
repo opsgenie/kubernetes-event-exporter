@@ -8,8 +8,8 @@ import (
 )
 
 type FileConfig struct {
-	Path   string
-	Layout map[string]interface{}
+	Path   string                 `yaml:"file"`
+	Layout map[string]interface{} `yaml:"layout"`
 }
 
 func (f *FileConfig) Validate() error {

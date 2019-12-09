@@ -10,9 +10,9 @@ import (
 )
 
 type WebhookConfig struct {
-	Endpoint string
-	Layout   map[string]interface{}
-	Headers  map[string]string
+	Endpoint string                 `yaml:"endpoint"`
+	Layout   map[string]interface{} `yaml:"layout"`
+	Headers  map[string]string      `yaml:"headers"`
 }
 
 func NewWebhook(cfg *WebhookConfig) (Sink, error) {

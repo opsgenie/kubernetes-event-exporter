@@ -4,16 +4,16 @@ import "errors"
 
 // Receiver allows receiving
 type ReceiverConfig struct {
-	Name          string
-	Webhook       *WebhookConfig
-	InMemory      *InMemoryConfig
-	File          *FileConfig
-	Elasticsearch *ElasticsearchConfig
-	Kinesis       *KinesisConfig
-	Opsgenie      *OpsgenieConfig
-	SQS           *SQSConfig
-	SNS           *SNSConfig
-	Slack         *SlackConfig
+	Name          string               `yaml:"name"`
+	InMemory      *InMemoryConfig      `yaml:"inMemory"`
+	Webhook       *WebhookConfig       `yaml:"webhook"`
+	File          *FileConfig          `yaml:"file"`
+	Elasticsearch *ElasticsearchConfig `yaml:"elasticsearch"`
+	Kinesis       *KinesisConfig       `yaml:"kinesis"`
+	Opsgenie      *OpsgenieConfig      `yaml:"opsgenie"`
+	SQS           *SQSConfig           `yaml:"sqs"`
+	SNS           *SNSConfig           `yaml:"sns"`
+	Slack         *SlackConfig         `yaml:"slack"`
 }
 
 func (r *ReceiverConfig) Validate() error {

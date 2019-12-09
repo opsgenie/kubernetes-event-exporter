@@ -20,25 +20,34 @@ var (
 
 func main() {
 	flag.Parse()
+	b, err := ioutil.ReadFile(*conf)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot read config file")
+	}
+
+	var cfg exporter.Config
+	err = yaml.Unmarshal(b, &cfg)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot parse config to YAML")
+	}
 
 	log.Logger = log.With().Caller().Logger().Output(zerolog.ConsoleWriter{
 		Out:        os.Stdout,
 		TimeFormat: time.RFC3339,
 	}).Level(zerolog.DebugLevel)
 
+	if cfg.LogLevel != "" {
+		level, err := zerolog.ParseLevel(cfg.LogLevel)
+		if err != nil {
+			log.Fatal().Err(err).Str("level", cfg.LogLevel).Msg("Invalid log level")
+		}
+		log.Logger = log.Logger.Level(level)
+	}
+
 	kubeconfig, err := kube.GetKubernetesConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot get kubeconfig")
-	}
-
-	b, err := ioutil.ReadFile(*conf)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot read config file")
-	}
-	var cfg exporter.Config
-	err = yaml.Unmarshal(b, &cfg)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot parse config to YAML")
 	}
 
 	engine := exporter.NewEngine(&cfg, &exporter.ChannelBasedReceiverRegistry{})

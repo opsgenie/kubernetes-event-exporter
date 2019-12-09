@@ -9,9 +9,9 @@ import (
 )
 
 type SQSConfig struct {
-	QueueName string
-	Region    string
-	Layout    map[string]interface{}
+	QueueName string                 `yaml:"queueName"`
+	Region    string                 `yaml:"region"`
+	Layout    map[string]interface{} `yaml:"layout"`
 }
 
 type SQSSink struct {
@@ -57,7 +57,6 @@ func (s *SQSSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 
 	return err
 }
-
 
 func (s *SQSSink) Close() {
 	// No-op

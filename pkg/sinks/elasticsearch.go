@@ -11,19 +11,19 @@ import (
 
 type ElasticsearchConfig struct {
 	// Connection specific
-	Addresses []string
-	Username  string
-	Password  string
-	CloudID   string
-	APIKey    string
+	Hosts    []string `yaml:"hosts"`
+	Username string   `yaml:"username"`
+	Password string   `yaml:"password"`
+	CloudID  string   `yaml:"cloudID"`
+	APIKey   string   `yaml:"apiKey"`
 	// Indexing preferences
-	UseEventID bool
-	Index      string
+	UseEventID bool   `yaml:"useEventID"`
+	Index      string `yaml:"index"`
 }
 
 func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
 	client, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: cfg.Addresses,
+		Addresses: cfg.Hosts,
 		Username:  cfg.Username,
 		Password:  cfg.Password,
 		CloudID:   cfg.CloudID,

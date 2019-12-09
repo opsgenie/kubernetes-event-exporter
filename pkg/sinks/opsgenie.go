@@ -8,14 +8,14 @@ import (
 )
 
 type OpsgenieConfig struct {
-	ApiKey      string
-	URL         client.ApiUrl
-	Priority    string
-	Message     string
-	Alias       string
-	Description string
-	Tags        []string
-	Details     map[string]string
+	ApiKey      string            `yaml:"apiKey"`
+	URL         client.ApiUrl     `yaml:"URL"`
+	Priority    string            `yaml:"priority"`
+	Message     string            `yaml:"message"`
+	Alias       string            `yaml:"alias"`
+	Description string            `yaml:"description"`
+	Tags        []string          `yaml:"tags"`
+	Details     map[string]string `yaml:"details"`
 }
 
 type OpsgenieSink struct {
