@@ -69,3 +69,13 @@ receivers:
           component: "{{ .Source.Component }}"
           host: "{{ .Source.Host }}"
           labels: "{{ toJson .InvolvedObject.Labels}}"
+  - name: "kafka"
+    kafka:
+      topic: "kube-event"
+      brokers:
+        - "localhost:9092"
+      tls:
+        enable: false
+        certFile: "kafka-client.crt"
+        keyFile: "kafka-client.key"
+        caFile: "kafka-ca.crt"

@@ -6,6 +6,7 @@ require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
+	github.com/Shopify/sarama v1.24.1
 	github.com/aws/aws-sdk-go v1.25.26
 	github.com/elastic/go-elasticsearch/v7 v7.4.1
 	github.com/gogo/protobuf v1.3.0 // indirect
