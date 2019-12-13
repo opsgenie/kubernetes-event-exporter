@@ -20,4 +20,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     namespace: monitoring
-    name: exporter
+    name: event-exporter
