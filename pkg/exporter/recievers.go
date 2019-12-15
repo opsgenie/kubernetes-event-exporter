@@ -9,4 +9,5 @@ import (
 type ReceiverRegistry interface {
 	SendEvent(string, *kube.EnhancedEvent)
 	Register(string, sinks.Sink)
+	Close()
 }

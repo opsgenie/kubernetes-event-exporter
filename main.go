@@ -61,4 +61,6 @@ func main() {
 	log.Info().Str("signal", sig.String()).Msg("Received signal to exit")
 	defer close(c)
 	w.Stop()
+	engine.Stop()
+	log.Info().Msg("Exiting")
 }

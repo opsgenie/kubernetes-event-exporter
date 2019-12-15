@@ -28,6 +28,10 @@ func (t *testReceiverRegistry) SendEvent(name string, event *kube.EnhancedEvent)
 	t.rcvd[name] = append(t.rcvd[name], event)
 }
 
+func (t *testReceiverRegistry) Close() {
+	// No-op
+}
+
 func (t *testReceiverRegistry) isEventRcvd(name string, event *kube.EnhancedEvent) bool {
 	if val, ok := t.rcvd[name]; !ok {
 		return false

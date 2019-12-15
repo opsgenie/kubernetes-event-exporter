@@ -27,3 +27,10 @@ func (s *SyncRegistry) Register(name string, sink sinks.Sink) {
 
 	s.reg[name] = sink
 }
+
+func (s *SyncRegistry) Close() {
+	for name, sink := range s.reg {
+		log.Info().Str("sink", name).Msg("Closing sink")
+		sink.Close()
+	}
+}

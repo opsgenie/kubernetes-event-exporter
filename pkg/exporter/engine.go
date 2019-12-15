@@ -37,3 +37,10 @@ func NewEngine(config *Config, registry ReceiverRegistry) *Engine {
 func (e *Engine) OnEvent(event *kube.EnhancedEvent) {
 	e.Route.ProcessEvent(event, e.Registry)
 }
+
+// Stop stops all registered sinks
+func (e *Engine) Stop() {
+	log.Info().Msg("Closing sinks")
+	e.Registry.Close()
+	log.Info().Msg("All sinks closed")
+}
