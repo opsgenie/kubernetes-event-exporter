@@ -194,6 +194,24 @@ receivers:
       layout: # Optional
 ```
 
+### Kafka
+
+Kafka is a popular tool used for real-time data pipelines. You can combine it with other tools for further analysis.
+
+```yaml
+receivers:
+  - name: "kafka"
+    kafka:
+      topic: "kube-event"
+      brokers:
+        - "localhost:9092"
+      tls:
+        enable: false
+        certFile: "kafka-client.crt"
+        keyFile: "kafka-client.key"
+        caFile: "kafka-ca.crt"
+```
+
 ### Customizing Payload
 
 Some receivers allow customizing the payload. This can be useful to integrate it to external systems that require 
