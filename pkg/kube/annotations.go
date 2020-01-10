@@ -7,10 +7,11 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"strings"
 	"sync"
 )
 
-type LabelCache struct {
+type AnnotationCache struct {
 	dynClient dynamic.Interface
 	clientset *kubernetes.Clientset
 
@@ -18,40 +19,43 @@ type LabelCache struct {
 	sync.RWMutex
 }
 
-func NewLabelCache(kubeconfig *rest.Config) (*LabelCache) {
+func NewAnnotationCache(kubeconfig *rest.Config) *AnnotationCache {
 	cache, err := lru.NewARC(1024)
 	if err != nil {
 		panic("cannot init cache: " + err.Error())
 	}
-	return &LabelCache{
+	return &AnnotationCache{
 		dynClient: dynamic.NewForConfigOrDie(kubeconfig),
 		clientset: kubernetes.NewForConfigOrDie(kubeconfig),
 		cache:     cache,
 	}
 }
 
-func (l *LabelCache) GetLabelsWithCache(reference *v1.ObjectReference) (map[string]string, error) {
+func (a *AnnotationCache) GetAnnotationsWithCache(reference *v1.ObjectReference) (map[string]string, error) {
 	uid := reference.UID
 
-	if val, ok := l.cache.Get(uid); ok {
+	if val, ok := a.cache.Get(uid); ok {
 		return val.(map[string]string), nil
 	}
 
-	obj, err := GetObject(reference, l.clientset, l.dynClient)
+	obj, err := GetObject(reference, a.clientset, a.dynClient)
 	if err == nil {
-		labels := obj.GetLabels()
-		l.cache.Add(uid, labels)
-		return labels, nil
+		annotations := obj.GetAnnotations()
+		for key := range annotations {
+			if strings.Contains(key, "kubernetes.io/") || strings.Contains(key, "k8s.io/") {
+				delete(annotations, key)
+			}
+		}
+		a.cache.Add(uid, annotations)
+		return annotations, nil
 	}
 
 	if errors.IsNotFound(err) {
-		// There can be events without the involved objects existing, they seem to be not garbage collected?
-		// Marking it nil so that we can return faster
 		var empty map[string]string
-		l.cache.Add(uid, empty)
+		a.cache.Add(uid, empty)
 		return nil, nil
 	}
 
-	// An non-ignorable error occurred
 	return nil, err
+
 }

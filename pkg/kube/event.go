@@ -13,8 +13,8 @@ type EnhancedEvent struct {
 
 type EnhancedObjectReference struct {
 	corev1.ObjectReference `json:",inline"`
-	// TODO(makin) Should we also get its annotations? But last-applied-configuration should be dropped, what else?
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // ToJSON does not return an error because we are %99 confident it is JSON serializable.
@@ -24,6 +24,6 @@ func (e *EnhancedEvent) ToJSON() []byte {
 	return b
 }
 
-func(e *EnhancedEvent) GetTimestampMs() int64 {
-	return e.FirstTimestamp.UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond))
+func (e *EnhancedEvent) GetTimestampMs() int64 {
+	return e.FirstTimestamp.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 }

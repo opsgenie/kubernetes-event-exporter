@@ -13,10 +13,11 @@ import (
 type EventHandler func(event *EnhancedEvent)
 
 type EventWatcher struct {
-	informer   cache.SharedInformer
-	stopper    chan struct{}
-	labelCache *LabelCache
-	fn         EventHandler
+	informer        cache.SharedInformer
+	stopper         chan struct{}
+	labelCache      *LabelCache
+	annotationCache *AnnotationCache
+	fn              EventHandler
 }
 
 func NewEventWatcher(config *rest.Config, fn EventHandler) *EventWatcher {
@@ -25,10 +26,11 @@ func NewEventWatcher(config *rest.Config, fn EventHandler) *EventWatcher {
 	informer := factory.Core().V1().Events().Informer()
 
 	watcher := &EventWatcher{
-		informer:   informer,
-		stopper:    make(chan struct{}),
-		labelCache: NewLabelCache(config),
-		fn:         fn,
+		informer:        informer,
+		stopper:         make(chan struct{}),
+		labelCache:      NewLabelCache(config),
+		annotationCache: NewAnnotationCache(config),
+		fn:              fn,
 	}
 
 	informer.AddEventHandler(watcher)
@@ -69,6 +71,14 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 		// Ignoring error, but log it anyways
 	} else {
 		ev.InvolvedObject.Labels = labels
+		ev.InvolvedObject.ObjectReference = *event.InvolvedObject.DeepCopy()
+	}
+
+	annotations, err := e.annotationCache.GetAnnotationsWithCache(&event.InvolvedObject)
+	if err != nil {
+		log.Error().Err(err).Msg("Cannot list annotations of the object")
+	}else {
+		ev.InvolvedObject.Annotations = annotations
 		ev.InvolvedObject.ObjectReference = *event.InvolvedObject.DeepCopy()
 	}
 

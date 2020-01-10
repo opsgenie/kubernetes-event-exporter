@@ -8,7 +8,7 @@ import (
 )
 
 type FileConfig struct {
-	Path   string                 `yaml:"file"`
+	Path   string                 `yaml:"path"`
 	Layout map[string]interface{} `yaml:"layout"`
 }
 
