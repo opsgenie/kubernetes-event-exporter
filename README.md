@@ -194,6 +194,18 @@ receivers:
       layout: # Optional
 ```
 
+### Stdout
+
+Stdout print event content to console.
+
+```yaml
+# ...
+receivers:
+  - name: "stdout"
+    stdout:
+      layout: # Optional
+```
+
 ### Kafka
 
 Kafka is a popular tool used for real-time data pipelines. You can combine it with other tools for further analysis.

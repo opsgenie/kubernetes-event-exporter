@@ -80,3 +80,5 @@ receivers:
         certFile: "kafka-client.crt"
         keyFile: "kafka-client.key"
         caFile: "kafka-ca.crt"
+  - name: "stdout"
+    stdout: {}
