@@ -1,4 +1,5 @@
 logLevel: info
+logFormat: pretty
 route:
   # Main route
   routes:

@@ -2,16 +2,18 @@ package main
 
 import (
 	"flag"
-	"github.com/opsgenie/kubernetes-event-exporter/pkg/exporter"
-	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/exporter"
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -32,10 +34,19 @@ func main() {
 		log.Fatal().Err(err).Msg("cannot parse config to YAML")
 	}
 
-	log.Logger = log.With().Caller().Logger().Output(zerolog.ConsoleWriter{
-		Out:        os.Stdout,
-		TimeFormat: time.RFC3339,
-	}).Level(zerolog.DebugLevel)
+	var writer io.Writer
+	switch cfg.LogFormat {
+	case "pretty", "":
+		writer = zerolog.ConsoleWriter{
+			Out:        os.Stdout,
+			TimeFormat: time.RFC3339,
+		}
+	case "json":
+		writer = zerolog.SyncWriter(os.Stdout)
+	default:
+		log.Fatal().Msg("Unsupported log format")
+	}
+	log.Logger = log.With().Caller().Logger().Output(writer).Level(zerolog.DebugLevel)
 
 	if cfg.LogLevel != "" {
 		level, err := zerolog.ParseLevel(cfg.LogLevel)

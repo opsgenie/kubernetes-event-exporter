@@ -10,6 +10,7 @@ type Config struct {
 	// TODO: There is currently a tight coupling with route and config, but not with receiver config and sink so
 	// TODO: I am not sure what to do here.
 	LogLevel  string                 `yaml:"logLevel"`
+	LogFormat string                 `yaml:"logFormat"`
 	Route     Route                  `yaml:"route"`
 	Receivers []sinks.ReceiverConfig `yaml:"receivers"`
 }
