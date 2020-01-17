@@ -28,30 +28,48 @@ func convertLayoutTemplate(layout map[string]interface{}, ev *kube.EnhancedEvent
 	result := make(map[string]interface{})
 
 	for key, value := range layout {
-		switch v := value.(type) {
-		case string:
-			rendered, err := GetString(ev, v)
-			if err != nil {
-				return nil, err
-			}
-
-			result[key] = rendered
-		case map[interface{}]interface{}:
-			strKeysMap := make(map[string]interface{})
-			for k, v := range v {
-				// TODO: It's a bit dangerous
-				strKeysMap[k.(string)] = v
-			}
-
-			res, err := convertLayoutTemplate(strKeysMap, ev)
-			if err != nil {
-				return nil, err
-			}
-			result[key] = res
-
+		m, err := convertTemplate(value, ev)
+		if err != nil {
+			return nil, err
 		}
+		result[key] = m
 	}
 	return result, nil
+}
+
+func convertTemplate(value interface{}, ev *kube.EnhancedEvent) (interface{}, error) {
+	switch v := value.(type) {
+	case string:
+		rendered, err := GetString(ev, v)
+		if err != nil {
+			return nil, err
+		}
+
+		return rendered, nil
+	case map[interface{}]interface{}:
+		strKeysMap := make(map[string]interface{})
+		for k, v := range v {
+			// TODO: It's a bit dangerous
+			strKeysMap[k.(string)] = v
+		}
+		res, err := convertTemplate(strKeysMap, ev)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+
+	case []interface{}:
+		listConf := make([]interface{}, len(v))
+		for i := range v {
+			t, err := convertTemplate(v[i], ev)
+			if err != nil {
+				return nil, err
+			}
+			listConf[i] = t
+		}
+		return listConf, nil
+	}
+	return nil, nil
 }
 
 func serializeEventWithLayout(layout map[string]interface{}, ev *kube.EnhancedEvent) ([]byte, error) {
