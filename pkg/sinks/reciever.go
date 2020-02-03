@@ -15,6 +15,7 @@ type ReceiverConfig struct {
 	SNS           *SNSConfig           `yaml:"sns"`
 	Slack         *SlackConfig         `yaml:"slack"`
 	Kafka         *KafkaConfig         `yaml:"kafka"`
+	Pubsub        *PubsubConfig        `yaml:"pubsub"`
 }
 
 func (r *ReceiverConfig) Validate() error {
@@ -65,6 +66,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 
 	if r.Kafka != nil {
 		return NewKafkaSink(r.Kafka)
+	}
+
+	if r.Pubsub != nil {
+		return NewPubsubSink(r.Pubsub)
 	}
 
 	return nil, errors.New("unknown sink")
