@@ -41,6 +41,7 @@ func NewPubsubSink(cfg *PubsubConfig) (Sink, error) {
 	return &PubsubSink{
 		pubsubClient: pubsubClient,
 		topic:        topic,
+		cfg:          cfg,
 	}, nil
 }
 
