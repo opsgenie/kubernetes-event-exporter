@@ -79,3 +79,8 @@ receivers:
         certFile: "kafka-client.crt"
         keyFile: "kafka-client.key"
         caFile: "kafka-ca.crt"
+  - name: "pubsub"
+    pubsub:
+      gcloud_project_id: "my-project"
+      topic: "kube-event"
+      create_topic: False

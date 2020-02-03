@@ -246,7 +246,6 @@ receivers:
 ### Planned Receivers
 
 - Big Query
-- PubSub
 - AWS Firehose
 - Splunk
 - Kafka

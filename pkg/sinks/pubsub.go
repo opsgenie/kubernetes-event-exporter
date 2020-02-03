@@ -48,7 +48,6 @@ func (ps *PubsubSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	msg := &pubsub.Message{
 		Data: ev.ToJSON(),
 	}
-	log.Info().Msgf("message: %+v", msg)
 	_, err := ps.topic.Publish(ctx, msg).Get(ctx)
 	return err
 }
