@@ -243,6 +243,19 @@ receivers:
           labels: "{{ toJson .InvolvedObject.Labels}}" 
 ```
 
+### Pubsub
+
+Pub/Sub is a fully-managed real-time messaging service that allows you to send and receive messages between independent applications.
+
+```yaml
+receivers:
+  - name: "pubsub"
+    pubsub:
+      gcloud_project_id: "my-project"
+      topic: "kube-event"
+      create_topic: False
+```
+
 ### Planned Receivers
 
 - Big Query
