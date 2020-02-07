@@ -5,8 +5,8 @@ route:
     # This route allows dumping all events because it has no fields to match and no drop rules.
     - match:
         - receiver: "dump"
-    # This starts another route, drops all the events in *test* namespaces and Normal events 
-    # for capturing critical events 
+    # This starts another route, drops all the events in *test* namespaces and Normal events
+    # for capturing critical events
     - drop:
         - namespace: "*test*"
         - type: "Normal"
@@ -61,7 +61,7 @@ receivers:
         details:
           message: "{{ .Message }}"
           reason: "{{ .Reason }}"
-          tip: "{{ .Type }}"
+          type: "{{ .Type }}"
           count: "{{ .Count }}"
           kind: "{{ .InvolvedObject.Kind }}"
           name: "{{ .InvolvedObject.Name }}"
