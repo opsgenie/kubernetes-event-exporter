@@ -130,7 +130,7 @@ receivers:
     slack:
       token: YOUR-API-TOKEN-HERE
       channel: "@{{ .InvolvedObject.Labels.owner }}"
-      message: "{{ .Message}}"
+      message: "{{ .Message }}"
       fields:
         namespace: "{{ .Namespace }}"
         reason: "{{ .Reason }}"
