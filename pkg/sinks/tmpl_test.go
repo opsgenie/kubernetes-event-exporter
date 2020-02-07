@@ -17,6 +17,12 @@ func TestLayoutConvert(t *testing.T) {
 	ev.Message = "Successfully pulled image \"nginx:latest\""
 	ev.FirstTimestamp = v1.Time{Time: time.Now()}
 
+	// Because Go, when parsing yaml, its []interface, not []string
+	var tagz interface{}
+	tagz = make([]interface{}, 2)
+	tagz.([]interface{})[0] = "sre"
+	tagz.([]interface{})[1] = "ops"
+
 	layout := map[string]interface{}{
 		"details": map[interface{}]interface{}{
 			"message":   "{{ .Message }}",
@@ -24,6 +30,7 @@ func TestLayoutConvert(t *testing.T) {
 			"name":      "{{ .InvolvedObject.Name }}",
 			"namespace": "{{ .Namespace }}",
 			"type":      "{{ .Type }}",
+			"tags":      tagz,
 		},
 		"eventType": "kube-event",
 		"region":    "us-west-2",
