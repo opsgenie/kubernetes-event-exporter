@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/exporter"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
@@ -16,6 +17,10 @@ import (
 
 var (
 	conf = flag.String("conf", "config.yaml", "The config path file")
+)
+
+const (
+	leaderElectionID = "kubernetes-event-exporter"
 )
 
 func main() {
@@ -52,7 +57,22 @@ func main() {
 
 	engine := exporter.NewEngine(&cfg, &exporter.ChannelBasedReceiverRegistry{})
 	w := kube.NewEventWatcher(kubeconfig, engine.OnEvent)
-	w.Start()
+
+	l, err := kube.NewLeaderElector(leaderElectionID, kubeconfig,
+		func(_ context.Context) {
+			log.Info().Msg("leader election got")
+			w.Start()
+		},
+		func() {
+			log.Error().Msg("leader election lost")
+			w.Stop()
+		},
+	)
+	if err != nil {
+		log.Fatal().Err(err).Msg("create leaderelector failed")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	go l.Run(ctx)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
@@ -60,7 +80,7 @@ func main() {
 	sig := <-c
 	log.Info().Str("signal", sig.String()).Msg("Received signal to exit")
 	defer close(c)
-	w.Stop()
+	cancel()
 	engine.Stop()
 	log.Info().Msg("Exiting")
 }
