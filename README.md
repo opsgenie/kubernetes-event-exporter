@@ -110,6 +110,7 @@ receivers:
       password: # optional
       cloudID: # optional
       apiKey: # optional
+      sslVerificationMode: none # optional, for self signed ssl certificate
       # If set to true, it allows updating the same document in ES (might be useful handling count)
       useEventID: true|false
   	  layout: # Optional

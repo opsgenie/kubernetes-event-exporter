@@ -3,10 +3,12 @@ package sinks
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"net/http"
 )
 
 type ElasticsearchConfig struct {
@@ -19,16 +21,25 @@ type ElasticsearchConfig struct {
 	// Indexing preferences
 	UseEventID bool   `yaml:"useEventID"`
 	Index      string `yaml:"index"`
+	// SSL settings
+	SslVerificationMode string `yaml:"sslVerificationMode"`
 }
 
 func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
-	client, err := elasticsearch.NewClient(elasticsearch.Config{
+	eCfg := elasticsearch.Config{
 		Addresses: cfg.Hosts,
 		Username:  cfg.Username,
 		Password:  cfg.Password,
 		CloudID:   cfg.CloudID,
 		APIKey:    cfg.APIKey,
-	})
+	}
+	if cfg.SslVerificationMode == "none" {
+		eCfg.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+
+	client, err := elasticsearch.NewClient(eCfg)
 	if err != nil {
 		return nil, err
 	}
