@@ -1,4 +1,4 @@
-logLevel: info
+logLevel: debug
 route:
   # Main route
   routes:
@@ -24,7 +24,7 @@ receivers:
     elasticsearch:
       hosts:
         - "http://localhost:9200"
-      index: "kube-events"
+      indexFormat: "kube-events-{2006-01-02}"
   - name: "alert"
     opsgenie:
       apiKey: ""

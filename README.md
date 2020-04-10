@@ -106,13 +106,16 @@ receivers:
       hosts:
       - http://localhost:9200
       index: kube-events            
+      # Ca be used optionally for time based indices, accepts Go time formatting directives
+      indexFormat: "kube-events-{2006-01-02}"
       username: # optional
       password: # optional
       cloudID: # optional
       apiKey: # optional
+      sslVerificationMode: none # optional, for self signed ssl certificate
       # If set to true, it allows updating the same document in ES (might be useful handling count)
       useEventID: true|false
-  	  layout: # Optional
+      layout: # Optional
 ```
 
 ### Slack
@@ -261,7 +264,6 @@ receivers:
 - Big Query
 - AWS Firehose
 - Splunk
-- Kafka
 - Redis
 - Logstash
 - Console
