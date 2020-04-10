@@ -5,6 +5,9 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"regexp"
+	"strings"
+	"time"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
@@ -19,9 +22,9 @@ type ElasticsearchConfig struct {
 	CloudID  string   `yaml:"cloudID"`
 	APIKey   string   `yaml:"apiKey"`
 	// Indexing preferences
-	UseEventID bool   `yaml:"useEventID"`
-	Index      string `yaml:"index"`
-	// SSL settings
+	UseEventID          bool   `yaml:"useEventID"`
+	Index               string `yaml:"index"`
+	IndexFormat         string `yaml:"indexFormat"`
 	SslVerificationMode string `yaml:"sslVerificationMode"`
 }
 
@@ -55,15 +58,43 @@ type Elasticsearch struct {
 	cfg    *ElasticsearchConfig
 }
 
+var regex = regexp.MustCompile(`(?s){(.*)}`)
+
+func formatIndexName(pattern string, when time.Time) string {	
+	m := regex.FindAllStringSubmatchIndex(pattern, -1)
+	current := 0;
+	var builder strings.Builder
+
+	for i := 0; i < len(m); i++ {
+		pair := m[i]
+
+		builder.WriteString(pattern[current:pair[0]])
+		builder.WriteString(when.Format(pattern[pair[0]+1:pair[1]-1]))
+		current = pair[1]
+	}
+
+	builder.WriteString(pattern[current:])
+
+	return builder.String()
+}
+
 func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	b, err := json.Marshal(ev)
 	if err != nil {
 		return err
 	}
 
+	var index string
+	if len(e.cfg.IndexFormat) > 0 {
+		now := time.Now()
+		index = formatIndexName(e.cfg.IndexFormat, now)
+	} else {
+		index = e.cfg.Index
+	}
+
 	req := esapi.IndexRequest{
 		Body:  bytes.NewBuffer(b),
-		Index: e.cfg.Index,
+		Index: index,
 	}
 
 	if e.cfg.UseEventID {
