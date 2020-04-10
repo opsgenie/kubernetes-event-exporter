@@ -49,15 +49,24 @@ func convertTemplate(value interface{}, ev *kube.EnhancedEvent) (interface{}, er
 	case map[interface{}]interface{}:
 		strKeysMap := make(map[string]interface{})
 		for k, v := range v {
+			res, err := convertTemplate(v, ev)
+			if err != nil {
+				return nil, err
+			}
 			// TODO: It's a bit dangerous
-			strKeysMap[k.(string)] = v
+			strKeysMap[k.(string)] = res
 		}
-		res, err := convertTemplate(strKeysMap, ev)
-		if err != nil {
-			return nil, err
+		return strKeysMap, nil
+	case map[string]interface{}:
+		strKeysMap := make(map[string]interface{})
+		for k, v := range v {
+			res, err := convertTemplate(v, ev)
+			if err != nil {
+				return nil, err
+			}
+			strKeysMap[k] = res
 		}
-		return res, nil
-
+		return strKeysMap, nil
 	case []interface{}:
 		listConf := make([]interface{}, len(v))
 		for i := range v {

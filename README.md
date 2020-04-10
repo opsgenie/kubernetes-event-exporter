@@ -110,6 +110,7 @@ receivers:
       password: # optional
       cloudID: # optional
       apiKey: # optional
+      sslVerificationMode: none # optional, for self signed ssl certificate
       # If set to true, it allows updating the same document in ES (might be useful handling count)
       useEventID: true|false
   	  layout: # Optional
@@ -130,7 +131,7 @@ receivers:
     slack:
       token: YOUR-API-TOKEN-HERE
       channel: "@{{ .InvolvedObject.Labels.owner }}"
-      message: "{{ .Message}}"
+      message: "{{ .Message }}"
       fields:
         namespace: "{{ .Namespace }}"
         reason: "{{ .Reason }}"
@@ -243,10 +244,22 @@ receivers:
           labels: "{{ toJson .InvolvedObject.Labels}}" 
 ```
 
+### Pubsub
+
+Pub/Sub is a fully-managed real-time messaging service that allows you to send and receive messages between independent applications.
+
+```yaml
+receivers:
+  - name: "pubsub"
+    pubsub:
+      gcloud_project_id: "my-project"
+      topic: "kube-event"
+      create_topic: False
+```
+
 ### Planned Receivers
 
 - Big Query
-- PubSub
 - AWS Firehose
 - Splunk
 - Kafka

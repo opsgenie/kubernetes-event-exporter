@@ -26,6 +26,8 @@ func main() {
 		log.Fatal().Err(err).Msg("cannot read config file")
 	}
 
+	b = []byte(os.ExpandEnv(string(b)))
+
 	var cfg exporter.Config
 	err = yaml.Unmarshal(b, &cfg)
 	if err != nil {
