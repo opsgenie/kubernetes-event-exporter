@@ -112,10 +112,13 @@ receivers:
       password: # optional
       cloudID: # optional
       apiKey: # optional
-      sslVerificationMode: none # optional, for self signed ssl certificate
       # If set to true, it allows updating the same document in ES (might be useful handling count)
       useEventID: true|false
       layout: # Optional
+      tls: # optional, advanced options for tls
+        insecureSkipVerify: true|false # optional, if set to true, the tls cert won't be verified
+        serverName: # optional, the domain, the certificate was issued for, in case it doesn't match the hostname used for the connection
+        caFile: # optional, path to the CA file of the trusted authority the cert was signed with 
 ```
 
 ### Slack
