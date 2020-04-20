@@ -136,7 +136,7 @@ func TestTwoLabelRequiredOneMissingRule(t *testing.T) {
 func TestOneAnnotationMatchesRule(t *testing.T) {
 	ev := &kube.EnhancedEvent{}
 	ev.InvolvedObject.Annotations = map[string]string{
-		"name":        "source",
+		"name":    "source",
 		"service": "event-exporter",
 	}
 
@@ -166,13 +166,13 @@ func TestOneAnnotationDoesNotMatchRule(t *testing.T) {
 func TestTwoAnnotationsMatchesRule(t *testing.T) {
 	ev := &kube.EnhancedEvent{}
 	ev.InvolvedObject.Annotations = map[string]string{
-		"name":        "source",
+		"name":    "source",
 		"service": "event-exporter",
 	}
 
 	r := Rule{
 		Annotations: map[string]string{
-			"name":        "sou.*",
+			"name":    "sou.*",
 			"service": "event*",
 		},
 	}
@@ -188,7 +188,7 @@ func TestTwoAnnotationsRequiredOneMissingRule(t *testing.T) {
 
 	r := Rule{
 		Annotations: map[string]string{
-			"name":        "sou*",
+			"name":    "sou*",
 			"service": "event*",
 		},
 	}
