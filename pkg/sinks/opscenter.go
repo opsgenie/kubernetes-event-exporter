@@ -2,6 +2,8 @@ package sinks
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -89,7 +91,11 @@ func (s *OpsCenterSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error 
 		if err != nil {
 			return err
 		}
-		oi.Priority = aws.String(p)
+		n, err := strconv.ParseInt(p, 10, 64)
+		if err == nil {
+			return fmt.Errorf("%d of type %T", n, n)
+		}
+		oi.Priority = aws.Int64(n)
 	}
 	if s.cfg.OperationalData != nil {
 		oids := make(map[string]*ssm.OpsItemDataValue)
