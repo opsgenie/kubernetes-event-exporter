@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 )
 
@@ -29,7 +30,7 @@ type OpsCenterConfig struct {
 // OpsCenterSink is an AWS OpsCenter notifcation path.
 type OpsCenterSink struct {
 	cfg *OpsCenterConfig
-	svc *ssm.SSM
+	svc ssmiface.SSMAPI
 }
 
 // NewOpsCenterSink returns a new OpsCenterSink.
@@ -94,6 +95,7 @@ func (s *OpsCenterSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error 
 		n, err := strconv.ParseInt(p, 10, 64)
 		if err == nil {
 			return fmt.Errorf("%d of type %T", n, n)
+			//return err
 		}
 		oi.Priority = aws.Int64(n)
 	}
