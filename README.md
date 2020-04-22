@@ -2,12 +2,12 @@
 
 > This tool is presented at [KubeCon 2019 San Diego](https://kccncna19.sched.com/event/6aa61eca397e4ff2bdbb2845e5aebb81).
 
-This tool allows exporting the often missed Kubernetes events to various outputs so that  they can be used for 
-observability or alerting purposes. You won't believe what you are missing. 
+This tool allows exporting the often missed Kubernetes events to various outputs so that  they can be used for
+observability or alerting purposes. You won't believe what you are missing.
 
 ## Deployment
 
-Head on to `deploy/` folder and apply the YAMLs in the given filename order. Do not forget to modify the 
+Head on to `deploy/` folder and apply the YAMLs in the given filename order. Do not forget to modify the
 `deploy/01-config.yaml` file to your configuration needs. The additional information for configuration is as follows:
 
 ## Configuration
@@ -21,39 +21,39 @@ flexibility. It generally looks like following:
 ```yaml
 route:
   # Main route
-  routes: 
+  routes:
     # This route allows dumping all events because it has no fields to match and no drop rules.
     - match:
       - receiver: dump
-    # This starts another route, drops all the events in *test* namespaces and Normal events 
-    # for capturing critical events 
+    # This starts another route, drops all the events in *test* namespaces and Normal events
+    # for capturing critical events
     - drop:
       - namespace: "*test*"
       - type: "Normal"
-      match: 
+      match:
       - receiver: "critical-events-queue"
     # This a final route for user messages
     - match:
         kind: "Pod|Deployment|ReplicaSet"
         labels:
-          version: "dev"    
-        receiver: "slack"    
+          version: "dev"
+        receiver: "slack"
 receivers:
 # See below for configuring the receivers
 ```
 
 * A `match` rule is exclusive, all conditions must be matched to the event.
 * During processing a route, `drop` rules are executed first to filter out events.
-* The `match` rules in a route are independent of each other. If an event matches a rule, it goes down it's subtree.  
+* The `match` rules in a route are independent of each other. If an event matches a rule, it goes down it's subtree.
 * If all the `match` rules are matched, the event is passed to the `receiver`.
-* A route can have many sub-routes, forming a tree. 
+* A route can have many sub-routes, forming a tree.
 * Routing starts from the root route.
 
 
 ### Opsgenie
 
-[Opsgenie](https://www.opsgenie.com) is an alerting and on-call management tool. kubernetes-event-exporter can push to 
-events to Opsgenie so that you can notify the on-call when something critical happens. Alerting should be precise and 
+[Opsgenie](https://www.opsgenie.com) is an alerting and on-call management tool. kubernetes-event-exporter can push to
+events to Opsgenie so that you can notify the on-call when something critical happens. Alerting should be precise and
 actionable, so you should carefully design what kind of alerts you would like in Opsgenie. A good starting point might be
 filtering out Normal type of events, while some additional filtering can help. Below is an example configuration.
 
@@ -95,7 +95,7 @@ receivers:
 
 [Elasticsearch](https://www.elastic.co/) is a full-text, distributed search engine which can also do powerful aggregations.
 You may decide to push all events to Elasticsearch and do some interesting queries over time to find out which images
-are pulled, how often pod schedules happen etc. You can [watch the presentation](https://static.sched.com/hosted_files/kccncna19/d0/Exporting%20K8s%20Events.pdf) 
+are pulled, how often pod schedules happen etc. You can [watch the presentation](https://static.sched.com/hosted_files/kccncna19/d0/Exporting%20K8s%20Events.pdf)
 in Kubecon to see what else you can do with aggregation and reporting.
 
 ```yaml
@@ -105,7 +105,7 @@ receivers:
     elasticsearch:
       hosts:
       - http://localhost:9200
-      index: kube-events            
+      index: kube-events
       # Ca be used optionally for time based indices, accepts Go time formatting directives
       indexFormat: "kube-events-{2006-01-02}"
       username: # optional
@@ -120,11 +120,11 @@ receivers:
 
 ### Slack
 
-Slack is a cloud-based instant messaging platform where many people use it for integrations and getting notified by 
+Slack is a cloud-based instant messaging platform where many people use it for integrations and getting notified by
 software such as Jira, Opsgenie, Google Calendar etc. and even some implement ChatOps on it. This tool also allows
 exporting events to Slack channels or direct messages to persons. If your objects in Kubernetes, such as Pods, Deployments
 have real owners, you can opt-in to notify them via important events by using the labels of the objects. If a Pod sandbox
-changes and it's restarted, or it cannot find the Docker image, you can immediately notify the owner. 
+changes and it's restarted, or it cannot find the Docker image, you can immediately notify the owner.
 
 ```yaml
 # ...
@@ -138,7 +138,7 @@ receivers:
         namespace: "{{ .Namespace }}"
         reason: "{{ .Reason }}"
         object: "{{ .Namespace }}"
-        
+
 ```
 
 ### Kinesis
@@ -214,10 +214,37 @@ receivers:
         keyFile: "kafka-client.key"
         caFile: "kafka-ca.crt"
 ```
+### OpsCenter
+
+[OpsCenter](https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html) provides a central location where operations engineers and IT professionals can view, investigate, and resolve operational work items (OpsItems) related to AWS resources. OpsCenter is designed to reduce mean time to resolution for issues impacting AWS resources. This Systems Manager capability aggregates and standardizes OpsItems across services while providing contextual investigation data about each OpsItem, related OpsItems, and related resources. OpsCenter also provides Systems Manager Automation documents (runbooks) that you can use to quickly resolve issues. You can specify searchable, custom data for each OpsItem. You can also view automatically-generated summary reports about OpsItems by status and source.
+
+```yaml
+# ...
+receivers:
+  - name: "alerts"
+    opscenter:
+    title: "{{ .Message }}",
+	  category: "{{ .Reason }}", # Optional
+		description: "Event {{ .Reason }} for {{ .InvolvedObject.Namespace }}/{{ .InvolvedObject.Name }} on K8s cluster",
+    notifications: # Optional: SNS ARN
+      - "sns1"
+      - "sns2"
+    operationalData: # Optional
+      - Reason: ""{{ .Reason }}"}"
+		priority: "6", # Optional
+		region: "us-east1",
+    relatedOpsItems: # Optional: OpsItems ARN
+      - "ops1"
+      - "ops2"
+		severity: "6" # Optional
+		source: "production"
+    tags: # Optional
+      - ENV: "{{ .InvolvedObject.Namespace }}"
+```
 
 ### Customizing Payload
 
-Some receivers allow customizing the payload. This can be useful to integrate it to external systems that require 
+Some receivers allow customizing the payload. This can be useful to integrate it to external systems that require
 the data be in some format. It is designed to reduce the need for code writing. It allows mapping an event using
 Go templates, with [sprig](github.com/Masterminds/sprig) library additions. It supports a recursive map definition,
 so that you can create virtually any kind of JSON to be pushed to a webhook, a Kinesis stream, SQS queue etc.
@@ -243,7 +270,7 @@ receivers:
           namespace: "{{ .Namespace }}"
           component: "{{ .Source.Component }}"
           host: "{{ .Source.Host }}"
-          labels: "{{ toJson .InvolvedObject.Labels}}" 
+          labels: "{{ toJson .InvolvedObject.Labels}}"
 ```
 
 ### Pubsub
