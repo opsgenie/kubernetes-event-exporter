@@ -93,9 +93,8 @@ func (s *OpsCenterSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error 
 			return err
 		}
 		n, err := strconv.ParseInt(p, 10, 64)
-		if err == nil {
-			return fmt.Errorf("%d of type %T", n, n)
-			//return err
+		if err != nil {
+			return fmt.Errorf("Priority is a non int")
 		}
 		oi.Priority = aws.Int64(n)
 	}
@@ -112,7 +111,7 @@ func (s *OpsCenterSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error 
 	}
 	if s.cfg.Tags != nil {
 		tvs := make([]*ssm.Tag, 0)
-		for k, v := range s.cfg.OperationalData {
+		for k, v := range s.cfg.Tags {
 			tv, err := GetString(ev, v)
 			if err != nil {
 				return err
