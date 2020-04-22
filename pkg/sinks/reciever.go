@@ -16,7 +16,6 @@ type ReceiverConfig struct {
 	Slack         *SlackConfig         `yaml:"slack"`
 	Kafka         *KafkaConfig         `yaml:"kafka"`
 	Pubsub        *PubsubConfig        `yaml:"pubsub"`
-	Opscenter     *OpsCenterConfig     `yaml:"opscenter"`
 }
 
 func (r *ReceiverConfig) Validate() error {
@@ -71,10 +70,6 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 
 	if r.Pubsub != nil {
 		return NewPubsubSink(r.Pubsub)
-	}
-
-	if r.Opscenter != nil {
-		return NewOpsCenterSink(r.Opscenter)
 	}
 
 	return nil, errors.New("unknown sink")
