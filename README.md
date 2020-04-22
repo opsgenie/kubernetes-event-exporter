@@ -224,20 +224,20 @@ receivers:
   - name: "alerts"
     opscenter:
     title: "{{ .Message }}",
-	  category: "{{ .Reason }}", # Optional
-	  description: "Event {{ .Reason }} for {{ .InvolvedObject.Namespace }}/{{ .InvolvedObject.Name }} on K8s cluster",
+    category: "{{ .Reason }}", # Optional
+    description: "Event {{ .Reason }} for {{ .InvolvedObject.Namespace }}/{{ .InvolvedObject.Name }} on K8s cluster",
     notifications: # Optional: SNS ARN
      - "sns1"
      - "sns2"
    operationalData: # Optional
      - Reason: ""{{ .Reason }}"}"
    priority: "6", # Optional
-	 region: "us-east1",
+   region: "us-east1",
    relatedOpsItems: # Optional: OpsItems ARN
      - "ops1"
      - "ops2"
-	 severity: "6" # Optional
-	 source: "production"
+     severity: "6" # Optional
+     source: "production"
    tags: # Optional
      - ENV: "{{ .InvolvedObject.Namespace }}"
 ```
