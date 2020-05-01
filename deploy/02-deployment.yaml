@@ -14,7 +14,7 @@ spec:
       serviceAccountName: event-exporter
       containers:
         - name: event-exporter
-          image: opsgenie/kubernetes-event-exporter:0.6
+          image: opsgenie/kubernetes-event-exporter:0.7
           imagePullPolicy: IfNotPresent
           args:
             - -conf=/data/config.yaml
