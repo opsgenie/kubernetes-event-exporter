@@ -133,6 +133,69 @@ func TestTwoLabelRequiredOneMissingRule(t *testing.T) {
 	assert.False(t, r.MatchesEvent(ev))
 }
 
+func TestOneAnnotationMatchesRule(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.InvolvedObject.Annotations = map[string]string{
+		"name":    "source",
+		"service": "event-exporter",
+	}
+
+	r := Rule{
+		Annotations: map[string]string{
+			"name": "sou*",
+		},
+	}
+	assert.True(t, r.MatchesEvent(ev))
+}
+
+func TestOneAnnotationDoesNotMatchRule(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.InvolvedObject.Annotations = map[string]string{
+		"name": "source",
+	}
+
+	r := Rule{
+		Annotations: map[string]string{
+			"name": "test*",
+		},
+	}
+
+	assert.False(t, r.MatchesEvent(ev))
+}
+
+func TestTwoAnnotationsMatchesRule(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.InvolvedObject.Annotations = map[string]string{
+		"name":    "source",
+		"service": "event-exporter",
+	}
+
+	r := Rule{
+		Annotations: map[string]string{
+			"name":    "sou.*",
+			"service": "event*",
+		},
+	}
+
+	assert.True(t, r.MatchesEvent(ev))
+}
+
+func TestTwoAnnotationsRequiredOneMissingRule(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.InvolvedObject.Annotations = map[string]string{
+		"service": "event-exporter",
+	}
+
+	r := Rule{
+		Annotations: map[string]string{
+			"name":    "sou*",
+			"service": "event*",
+		},
+	}
+
+	assert.False(t, r.MatchesEvent(ev))
+}
+
 func TestComplexRuleNoMatch(t *testing.T) {
 	ev := &kube.EnhancedEvent{}
 	ev.InvolvedObject.Labels = map[string]string{
@@ -160,6 +223,9 @@ func TestComplexRuleMatches(t *testing.T) {
 		"env":     "prod",
 		"version": "alpha",
 	}
+	ev.InvolvedObject.Annotations = map[string]string{
+		"service": "event-exporter",
+	}
 
 	r := Rule{
 		Namespace: "kube-system",
@@ -168,9 +234,39 @@ func TestComplexRuleMatches(t *testing.T) {
 			"env":     "prod",
 			"version": "alpha",
 		},
+		Annotations: map[string]string{
+			"service": "event*",
+		},
 	}
 
 	assert.True(t, r.MatchesEvent(ev))
+}
+
+func TestComplexRuleAnnotationsNoMatch(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.Namespace = "kube-system"
+	ev.InvolvedObject.Kind = "Pod"
+	ev.InvolvedObject.Labels = map[string]string{
+		"env":     "prod",
+		"version": "alpha",
+	}
+	ev.InvolvedObject.Annotations = map[string]string{
+		"service": "event*",
+	}
+
+	r := Rule{
+		Namespace: "kube-system",
+		Kind:      "Pod",
+		Labels: map[string]string{
+			"env":     "prod",
+			"version": "alpha",
+		},
+		Annotations: map[string]string{
+			"name": "test*",
+		},
+	}
+
+	assert.False(t, r.MatchesEvent(ev))
 }
 
 func TestComplexRuleMatchesRegexp(t *testing.T) {
@@ -237,8 +333,8 @@ func TestCount(t *testing.T) {
 	ev.Count = 5
 
 	r := Rule{
-		Type:    "Pod",
-		Message: "pulled.*nginx.*",
+		Type:     "Pod",
+		Message:  "pulled.*nginx.*",
 		MinCount: 30,
 	}
 
