@@ -3,13 +3,18 @@ package sinks
 import (
 	"context"
 	"encoding/json"
+	"io"
+
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
-	"os"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type FileConfig struct {
-	Path   string                 `yaml:"path"`
-	Layout map[string]interface{} `yaml:"layout"`
+	Path       string                 `yaml:"path"`
+	Layout     map[string]interface{} `yaml:"layout"`
+	MaxSize    int                    `yaml:"maxsize"`
+	MaxAge     int                    `yaml:"maxage"`
+	MaxBackups int                    `yaml:"maxbackups"`
 }
 
 func (f *FileConfig) Validate() error {
@@ -17,27 +22,28 @@ func (f *FileConfig) Validate() error {
 }
 
 type File struct {
-	file    *os.File
+	writer  io.WriteCloser
 	encoder *json.Encoder
 	layout  map[string]interface{}
 }
 
 func NewFileSink(config *FileConfig) (*File, error) {
-	file, err := os.OpenFile(config.Path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-
-	if err != nil {
-		return nil, err
+	writer := &lumberjack.Logger{
+		Filename:   config.Path,
+		MaxSize:    config.MaxSize,
+		MaxBackups: config.MaxBackups,
+		MaxAge:     config.MaxAge,
 	}
 
 	return &File{
-		file:    file,
-		encoder: json.NewEncoder(file),
+		writer:  writer,
+		encoder: json.NewEncoder(writer),
 		layout:  config.Layout,
 	}, nil
 }
 
 func (f *File) Close() {
-	_ = f.file.Close()
+	_ = f.writer.Close()
 }
 
 func (f *File) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
