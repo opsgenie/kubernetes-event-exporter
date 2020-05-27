@@ -288,6 +288,18 @@ receivers:
       topic: "kube-event"
       create_topic: False
 ```
+### Teams
+
+Microsoft Teams is your hub for teamwork in Office 365. All your team conversations, files, meetings, and apps live together in a single shared workspace, and you can take it with you on your favorite mobile device.
+
+```yaml
+# ...
+receivers:
+  - name: "ms_teams"
+    teams:
+      endpoint: "https://outlook.office.com/webhook/..."
+      layout: # Optional
+```
 
 ### Planned Receivers
 
