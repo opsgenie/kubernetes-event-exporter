@@ -17,7 +17,7 @@ type ReceiverConfig struct {
 	Kafka         *KafkaConfig         `yaml:"kafka"`
 	Pubsub        *PubsubConfig        `yaml:"pubsub"`
 	Opscenter     *OpsCenterConfig     `yaml:"opscenter"`
-        Teams         *TeamsConfig         `yaml:"teams"`
+	Teams         *TeamsConfig         `yaml:"teams"`
 }
 
 func (r *ReceiverConfig) Validate() error {
