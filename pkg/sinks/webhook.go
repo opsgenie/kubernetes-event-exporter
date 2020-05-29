@@ -51,7 +51,7 @@ func (w *Webhook) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	body, err := ioutil.ReadAll(resp.Body)
 
 	// TODO: make this prettier please
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return errors.New("not 200: " + string(body))
 	}
 
