@@ -52,7 +52,7 @@ func (w *Webhook) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 
 	// TODO: make this prettier please
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		return errors.New("not 200: " + string(body))
+		return errors.New("not 200/201: " + string(body))
 	}
 
 	return nil
