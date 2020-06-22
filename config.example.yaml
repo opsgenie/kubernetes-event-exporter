@@ -1,5 +1,6 @@
 logLevel: debug
 logFormat: json
+# namespace: my-namespace-only # Omitting it defaults to all namespaces.
 route:
   # Main route
   routes:

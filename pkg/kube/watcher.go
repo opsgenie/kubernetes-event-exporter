@@ -20,9 +20,9 @@ type EventWatcher struct {
 	fn              EventHandler
 }
 
-func NewEventWatcher(config *rest.Config, fn EventHandler) *EventWatcher {
+func NewEventWatcher(config *rest.Config, namespace string, fn EventHandler) *EventWatcher {
 	clientset := kubernetes.NewForConfigOrDie(config)
-	factory := informers.NewSharedInformerFactory(clientset, 0)
+	factory := informers.NewSharedInformerFactoryWithOptions(clientset, 0, informers.WithNamespace(namespace))
 	informer := factory.Core().V1().Events().Informer()
 
 	watcher := &EventWatcher{

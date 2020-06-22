@@ -12,6 +12,7 @@ type Config struct {
 	// TODO: I am not sure what to do here.
 	LogLevel       string                    `yaml:"logLevel"`
 	LogFormat      string                    `yaml:"logFormat"`
+	Namespace      string                    `yaml:"namespace"`
 	LeaderElection kube.LeaderElectionConfig `yaml:"leaderElection"`
 	Route          Route                     `yaml:"route"`
 	Receivers      []sinks.ReceiverConfig    `yaml:"receivers"`

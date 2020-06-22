@@ -1,5 +1,6 @@
 logLevel: error
 logFormat: json
+# namespace: tekton-pipelines
 route:
   routes:
     - match:
@@ -7,4 +8,4 @@ route:
 receivers:
   - name: "dump"
     file:
-      path: "/tmp/deneme1"
+      path: "/dev/stdout"
