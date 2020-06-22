@@ -1,4 +1,5 @@
 logLevel: debug
+logFormat: json
 route:
   # Main route
   routes:

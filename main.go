@@ -3,17 +3,16 @@ package main
 import (
 	"context"
 	"flag"
-	"io/ioutil"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/exporter"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 var (
@@ -36,10 +35,7 @@ func main() {
 		log.Fatal().Err(err).Msg("cannot parse config to YAML")
 	}
 
-	log.Logger = log.With().Caller().Logger().Output(zerolog.ConsoleWriter{
-		Out:        os.Stdout,
-		TimeFormat: time.RFC3339,
-	}).Level(zerolog.DebugLevel)
+	log.Logger = log.With().Caller().Logger().Level(zerolog.DebugLevel)
 
 	if cfg.LogLevel != "" {
 		level, err := zerolog.ParseLevel(cfg.LogLevel)
@@ -47,6 +43,18 @@ func main() {
 			log.Fatal().Err(err).Str("level", cfg.LogLevel).Msg("Invalid log level")
 		}
 		log.Logger = log.Logger.Level(level)
+	}
+
+	if cfg.LogFormat == "json" {
+		// Defaults to JSON already nothing to do
+	} else if cfg.LogFormat == "" || cfg.LogFormat == "pretty" {
+		log.Logger = log.Logger.Output(zerolog.ConsoleWriter{
+			Out:        os.Stdout,
+			NoColor:    false,
+			TimeFormat: time.RFC3339,
+		})
+	} else {
+		log.Fatal().Str("log_format", cfg.LogFormat).Msg("Unknown log format")
 	}
 
 	kubeconfig, err := kube.GetKubernetesConfig()
