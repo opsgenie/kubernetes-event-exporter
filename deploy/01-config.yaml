@@ -5,12 +5,13 @@ metadata:
   namespace: monitoring
 data:
   config.yaml: |
+    logLevel: error
+    logFormat: json
     route:
-      match:
-        - receiver: "dump"
+      routes:
+        - match:
+            - receiver: "dump"
     receivers:
       - name: "dump"
-        elasticsearch:
-          hosts:
-          - http://elasticsearch.monitoring.svc.cluster.local:9200
-          index: kube-events
+        file:
+          path: "/dev/stdout"

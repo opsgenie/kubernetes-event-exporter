@@ -20,9 +20,9 @@ type EventWatcher struct {
 	fn              EventHandler
 }
 
-func NewEventWatcher(config *rest.Config, fn EventHandler) *EventWatcher {
+func NewEventWatcher(config *rest.Config, namespace string, fn EventHandler) *EventWatcher {
 	clientset := kubernetes.NewForConfigOrDie(config)
-	factory := informers.NewSharedInformerFactory(clientset, 0)
+	factory := informers.NewSharedInformerFactoryWithOptions(clientset, 0, informers.WithNamespace(namespace))
 	informer := factory.Core().V1().Events().Informer()
 
 	watcher := &EventWatcher{
@@ -59,6 +59,7 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 		Str("msg", event.Message).
 		Str("namespace", event.Namespace).
 		Str("reason", event.Reason).
+		Str("involvedObject", event.InvolvedObject.Name).
 		Msg("Received event")
 
 	ev := &EnhancedEvent{
@@ -77,7 +78,7 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 	annotations, err := e.annotationCache.GetAnnotationsWithCache(&event.InvolvedObject)
 	if err != nil {
 		log.Error().Err(err).Msg("Cannot list annotations of the object")
-	}else {
+	} else {
 		ev.InvolvedObject.Annotations = annotations
 		ev.InvolvedObject.ObjectReference = *event.InvolvedObject.DeepCopy()
 	}

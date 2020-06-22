@@ -194,3 +194,32 @@ func TestSubSubRouteWithDrop(t *testing.T) {
 	assert.True(t, reg.isEventRcvd("osman", &ev))
 	assert.False(t, reg.isEventRcvd("any", &ev))
 }
+
+// Test for issue: https://github.com/opsgenie/kubernetes-event-exporter/issues/51
+func Test_GHIssue51(t *testing.T) {
+	ev1 := kube.EnhancedEvent{}
+	ev1.Type = "Warning"
+	ev1.Reason = "FailedCreatePodContainer"
+
+	ev2 := kube.EnhancedEvent{}
+	ev2.Type = "Warning"
+	ev2.Reason = "FailedCreate"
+
+	reg := testReceiverRegistry{}
+
+	r := Route{
+		Drop: []Rule{{
+			Type: "Normal",
+		}},
+		Match: []Rule{{
+			Reason: "FailedCreatePodContainer",
+			Receiver: "elastic",
+		}},
+	}
+
+	r.ProcessEvent(&ev1, &reg)
+	r.ProcessEvent(&ev2, &reg)
+
+	assert.True(t, reg.isEventRcvd("elastic", &ev1))
+	assert.False(t, reg.isEventRcvd("elastic", &ev2))
+}
