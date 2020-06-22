@@ -179,7 +179,7 @@ SQS is an AWS service for message queuing that allows high throughput messaging.
 ```yaml
 # ...
 receivers:
-  - name: "file"
+  - name: "sqs"
     sqs:
       queueName: "/tmp/dump"
       region: us-west-2
