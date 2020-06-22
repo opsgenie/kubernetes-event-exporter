@@ -58,6 +58,7 @@ func main() {
 	w := kube.NewEventWatcher(kubeconfig, engine.OnEvent)
 
 	ctx, cancel := context.WithCancel(context.Background())
+	leaderLost := make(chan bool)
 	if cfg.LeaderElection.Enabled {
 		l, err := kube.NewLeaderElector(cfg.LeaderElection.LeaderElectionID, kubeconfig,
 			func(_ context.Context) {
@@ -66,7 +67,7 @@ func main() {
 			},
 			func() {
 				log.Error().Msg("leader election lost")
-				w.Stop()
+				leaderLost <- true
 			},
 		)
 		if err != nil {
@@ -80,14 +81,21 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
-	sig := <-c
-	log.Info().Str("signal", sig.String()).Msg("Received signal to exit")
-	defer close(c)
-	if cfg.LeaderElection.Enabled {
+	gracefulExit := func() {
+		defer close(c)
+		defer close(leaderLost)
 		cancel()
-	} else {
 		w.Stop()
+		engine.Stop()
+		log.Info().Msg("Exiting")
 	}
-	engine.Stop()
-	log.Info().Msg("Exiting")
+
+	select {
+	case sig := <-c:
+		log.Info().Str("signal", sig.String()).Msg("Received signal to exit")
+		gracefulExit()
+	case <-leaderLost:
+		log.Warn().Msg("Leader election lost")
+		gracefulExit()
+	}
 }
