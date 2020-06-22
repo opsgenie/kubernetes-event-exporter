@@ -31,6 +31,7 @@ type ElasticsearchConfig struct {
 		ServerName         string `yaml:"serverName"`
 		CaFile             string `yaml:"caFile"`
 	} `yaml:"tls"`
+	Layout map[string]interface{} `yaml:"layout"`
 }
 
 func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
@@ -96,9 +97,20 @@ func formatIndexName(pattern string, when time.Time) string {
 }
 
 func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
-	b, err := json.Marshal(ev)
-	if err != nil {
-		return err
+	var toSend []byte
+
+	if e.cfg.Layout != nil {
+		res, err := convertLayoutTemplate(e.cfg.Layout, ev)
+		if err != nil {
+			return err
+		}
+
+		toSend, err = json.Marshal(res)
+		if err != nil {
+			return err
+		}
+	} else {
+		toSend = ev.ToJSON()
 	}
 
 	var index string
@@ -110,7 +122,7 @@ func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error 
 	}
 
 	req := esapi.IndexRequest{
-		Body:  bytes.NewBuffer(b),
+		Body:  bytes.NewBuffer(toSend),
 		Index: index,
 	}
 
