@@ -200,6 +200,23 @@ receivers:
       layout: # Optional
 ```
 
+### Stdout
+
+Standard out is also another file in Linux. You can use the following configuration as an examplee:
+
+```yaml
+logLevel: error
+logFormat: json
+route:
+  routes:
+    - match:
+        - receiver: "dump"
+receivers:
+  - name: "dump"
+    file:
+      path: "/dev/stdout"
+```
+
 ### Kafka
 
 Kafka is a popular tool used for real-time data pipelines. You can combine it with other tools for further analysis.
@@ -308,4 +325,3 @@ receivers:
 - Splunk
 - Redis
 - Logstash
-- Console
