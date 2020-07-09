@@ -11,10 +11,12 @@ type EnhancedEvent struct {
 	InvolvedObject EnhancedObjectReference `json:"involvedObject"`
 }
 
+
+// TODO(vsbus): restore this part but for BQ sink find a way to convert map into list of KV pairs before marshaling to JSON.
 type EnhancedObjectReference struct {
 	corev1.ObjectReference `json:",inline"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
+	Labels      map[string]string `json:"-"`
+	Annotations map[string]string `json:"-"`
 }
 
 // ToJSON does not return an error because we are %99 confident it is JSON serializable.

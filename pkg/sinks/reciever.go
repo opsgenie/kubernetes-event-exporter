@@ -1,6 +1,7 @@
 package sinks
 
 import "errors"
+import "fmt"
 
 // Receiver allows receiving
 type ReceiverConfig struct {
@@ -24,6 +25,7 @@ func (r *ReceiverConfig) Validate() error {
 }
 
 func (r *ReceiverConfig) GetSink() (Sink, error) {
+        fmt.Println("GetSink ", r);
 	if r.InMemory != nil {
 		// This reference is used for test purposes to count the events in the sink.
 		// It should not be used in production since it will only cause memory leak and (b)OOM
