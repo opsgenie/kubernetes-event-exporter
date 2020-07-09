@@ -44,15 +44,17 @@ func (w *Webhook) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 
-	// TODO: make this prettier please
-	if resp.StatusCode != http.StatusOK {
-		return errors.New("not 200: " + string(body))
+	if resp.StatusCode >= 200 && resp.StatusCode < 300{
+		return errors.New("not 200/201: " + string(body))
 	}
 
 	return nil

@@ -18,6 +18,7 @@ type ReceiverConfig struct {
 	Kafka         *KafkaConfig         `yaml:"kafka"`
 	Pubsub        *PubsubConfig        `yaml:"pubsub"`
 	Opscenter     *OpsCenterConfig     `yaml:"opscenter"`
+	Teams         *TeamsConfig         `yaml:"teams"`
 }
 
 func (r *ReceiverConfig) Validate() error {
@@ -78,6 +79,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 	if r.Opscenter != nil {
 		return NewOpsCenterSink(r.Opscenter)
 	}
+
+        if r.Teams != nil {
+                return NewTeamsSink(r.Teams)
+        }
 
 	return nil, errors.New("unknown sink")
 }

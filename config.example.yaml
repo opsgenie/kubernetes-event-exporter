@@ -1,0 +1,88 @@
+logLevel: debug
+logFormat: json
+# namespace: my-namespace-only # Omitting it defaults to all namespaces.
+route:
+  # Main route
+  routes:
+    # This route allows dumping all events because it has no fields to match and no drop rules.
+    - match:
+        - receiver: "dump"
+    # This starts another route, drops all the events in *test* namespaces and Normal events 
+    # for capturing critical events 
+    - drop:
+        - namespace: "*test*"
+        - type: "Normal"
+      match:
+        - receiver: "alert"
+        - receiver: "pipe"
+    # This a final route for user messages
+    - match:
+      - kind: "Pod|Deployment|ReplicaSet"
+        labels:
+          version: "dev"
+        receiver: "slack"
+receivers:
+  - name: "dump"
+    elasticsearch:
+      hosts:
+        - "http://localhost:9200"
+      indexFormat: "kube-events-{2006-01-02}"
+  - name: "alert"
+    opsgenie:
+      apiKey: ""
+      priority: "P3"
+      message: "Event {{ .Reason }} for {{ .InvolvedObject.Namespace }}/{{ .InvolvedObject.Name }} on K8s cluster"
+      alias: "{{ .UID }}"
+      description: "<pre>{{ toPrettyJson . }}</pre>"
+      tags:
+        - "event"
+        - "{{ .Reason }}"
+        - "{{ .InvolvedObject.Kind }}"
+        - "{{ .InvolvedObject.Name }}"
+  - name: "slack"
+    slack:
+      token: ""
+      channel: "#mustafa-test"
+      message: "Received a Kubernetes Event {{ .Message}}"
+      fields:
+        message: "{{ .Message }}"
+        namespace: "{{ .Namespace }}"
+        reason: "{{ .Reason }}"
+        object: "{{ .Namespace }}"
+  - name: "pipe"
+    webhook:
+      endpoint: "http://localhost:3000"
+      headers:
+        X-API-KEY: "123-456-OPSGENIE-789-ABC"
+        User-Agent: "kube-event-exporter 1.0"
+      streamName: "applicationMetric"
+      layout:
+        endpoint: "localhost2"
+        eventType: "kube-event"
+        createdAt: "{{ .GetTimestampMs }}"
+        details:
+          message: "{{ .Message }}"
+          reason: "{{ .Reason }}"
+          tip: "{{ .Type }}"
+          count: "{{ .Count }}"
+          kind: "{{ .InvolvedObject.Kind }}"
+          name: "{{ .InvolvedObject.Name }}"
+          namespace: "{{ .Namespace }}"
+          component: "{{ .Source.Component }}"
+          host: "{{ .Source.Host }}"
+          labels: "{{ toJson .InvolvedObject.Labels}}"
+  - name: "kafka"
+    kafka:
+      topic: "kube-event"
+      brokers:
+        - "localhost:9092"
+      tls:
+        enable: false
+        certFile: "kafka-client.crt"
+        keyFile: "kafka-client.key"
+        caFile: "kafka-ca.crt"
+  - name: "pubsub"
+    pubsub:
+      gcloud_project_id: "my-project"
+      topic: "kube-event"
+      create_topic: False

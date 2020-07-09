@@ -38,6 +38,7 @@ type ElasticsearchConfig struct {
 		ServerName         string `yaml:"serverName"`
 		CaFile             string `yaml:"caFile"`
 	} `yaml:"tls"`
+	Layout map[string]interface{} `yaml:"layout"`
 }
 
 func writeBatchToJsonFile(path string, items []interface{}) error {
@@ -187,6 +188,29 @@ func formatIndexName(pattern string, when time.Time) string {
 	return builder.String()
 }
 
+// func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
+// 	var toSend []byte
+// 
+// 	if e.cfg.Layout != nil {
+// 		res, err := convertLayoutTemplate(e.cfg.Layout, ev)
+// 		if err != nil {
+// 			return err
+// 		}
+// 
+// 		toSend, err = json.Marshal(res)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	} else {
+// 		toSend = ev.ToJSON()
+// 	}
+// =======
+// 	req := esapi.IndexRequest{
+// 		Body:  bytes.NewBuffer(toSend),
+// 		Index: index,
+// 	}
+// >>>>>>> 8a6aaabc41f83353bacb03f1b082debd304693d1
+
 
 func importJSONAutodetectSchema(projectID, datasetID, tableID string) error {
         // projectID := "my-project-id"
@@ -204,7 +228,6 @@ func importJSONAutodetectSchema(projectID, datasetID, tableID string) error {
         gcsRef.AutoDetect = true
         loader := client.Dataset(datasetID).Table(tableID).LoaderFrom(gcsRef)
         loader.WriteDisposition = bigquery.WriteEmpty
-
         job, err := loader.Run(ctx)
         if err != nil {
                 return err

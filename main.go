@@ -3,17 +3,16 @@ package main
 import (
 	"context"
 	"flag"
-	"io/ioutil"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/exporter"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 var (
@@ -36,10 +35,7 @@ func main() {
 		log.Fatal().Err(err).Msg("cannot parse config to YAML")
 	}
 
-	log.Logger = log.With().Caller().Logger().Output(zerolog.ConsoleWriter{
-		Out:        os.Stdout,
-		TimeFormat: time.RFC3339,
-	}).Level(zerolog.DebugLevel)
+	log.Logger = log.With().Caller().Logger().Level(zerolog.DebugLevel)
 
 	if cfg.LogLevel != "" {
 		level, err := zerolog.ParseLevel(cfg.LogLevel)
@@ -49,15 +45,28 @@ func main() {
 		log.Logger = log.Logger.Level(level)
 	}
 
+	if cfg.LogFormat == "json" {
+		// Defaults to JSON already nothing to do
+	} else if cfg.LogFormat == "" || cfg.LogFormat == "pretty" {
+		log.Logger = log.Logger.Output(zerolog.ConsoleWriter{
+			Out:        os.Stdout,
+			NoColor:    false,
+			TimeFormat: time.RFC3339,
+		})
+	} else {
+		log.Fatal().Str("log_format", cfg.LogFormat).Msg("Unknown log format")
+	}
+
 	kubeconfig, err := kube.GetKubernetesConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot get kubeconfig")
 	}
 
 	engine := exporter.NewEngine(&cfg, &exporter.ChannelBasedReceiverRegistry{})
-	w := kube.NewEventWatcher(kubeconfig, engine.OnEvent)
+	w := kube.NewEventWatcher(kubeconfig, cfg.Namespace, engine.OnEvent)
 
 	ctx, cancel := context.WithCancel(context.Background())
+	leaderLost := make(chan bool)
 	if cfg.LeaderElection.Enabled {
 		l, err := kube.NewLeaderElector(cfg.LeaderElection.LeaderElectionID, kubeconfig,
 			func(_ context.Context) {
@@ -66,7 +75,7 @@ func main() {
 			},
 			func() {
 				log.Error().Msg("leader election lost")
-				w.Stop()
+				leaderLost <- true
 			},
 		)
 		if err != nil {
@@ -80,14 +89,21 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
-	sig := <-c
-	log.Info().Str("signal", sig.String()).Msg("Received signal to exit")
-	defer close(c)
-	if cfg.LeaderElection.Enabled {
+	gracefulExit := func() {
+		defer close(c)
+		defer close(leaderLost)
 		cancel()
-	} else {
 		w.Stop()
+		engine.Stop()
+		log.Info().Msg("Exiting")
 	}
-	engine.Stop()
-	log.Info().Msg("Exiting")
+
+	select {
+	case sig := <-c:
+		log.Info().Str("signal", sig.String()).Msg("Received signal to exit")
+		gracefulExit()
+	case <-leaderLost:
+		log.Warn().Msg("Leader election lost")
+		gracefulExit()
+	}
 }

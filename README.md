@@ -179,7 +179,7 @@ SQS is an AWS service for message queuing that allows high throughput messaging.
 ```yaml
 # ...
 receivers:
-  - name: "file"
+  - name: "sqs"
     sqs:
       queueName: "/tmp/dump"
       region: us-west-2
@@ -198,6 +198,23 @@ receivers:
     file:
       path: "/tmp/dump"
       layout: # Optional
+```
+
+### Stdout
+
+Standard out is also another file in Linux. You can use the following configuration as an examplee:
+
+```yaml
+logLevel: error
+logFormat: json
+route:
+  routes:
+    - match:
+        - receiver: "dump"
+receivers:
+  - name: "dump"
+    file:
+      path: "/dev/stdout"
 ```
 
 ### Kafka
@@ -288,6 +305,18 @@ receivers:
       topic: "kube-event"
       create_topic: False
 ```
+### Teams
+
+Microsoft Teams is your hub for teamwork in Office 365. All your team conversations, files, meetings, and apps live together in a single shared workspace, and you can take it with you on your favorite mobile device.
+
+```yaml
+# ...
+receivers:
+  - name: "ms_teams"
+    teams:
+      endpoint: "https://outlook.office.com/webhook/..."
+      layout: # Optional
+```
 
 ### Planned Receivers
 
@@ -296,4 +325,3 @@ receivers:
 - Splunk
 - Redis
 - Logstash
-- Console
