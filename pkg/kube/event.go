@@ -11,12 +11,14 @@ type EnhancedEvent struct {
 	InvolvedObject EnhancedObjectReference `json:"involvedObject"`
 }
 
+// Using an alias for map to allow overloading MarshalJSON. It is needed for some sinks to make
+// output JSON compatible with the external system, e.g. BigQuery.
+type Map map[string]string
 
-// TODO(vsbus): restore this part but for BQ sink find a way to convert map into list of KV pairs before marshaling to JSON.
 type EnhancedObjectReference struct {
 	corev1.ObjectReference `json:",inline"`
-	Labels      map[string]string `json:"-"`
-	Annotations map[string]string `json:"-"`
+	Labels      Map `json:"labels,omitempty"`
+	Annotations Map `json:"annotations,omitempty"`
 }
 
 // ToJSON does not return an error because we are %99 confident it is JSON serializable.
