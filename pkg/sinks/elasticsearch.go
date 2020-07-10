@@ -249,7 +249,6 @@ func importJSONAutodetectSchema(projectID, datasetID, tableID string) error {
 func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	log.Info().Msgf("add to buffer...")
 	e.batchWriter.Submit(ev)
-
         return nil
 	// var index string
 	// if len(e.cfg.IndexFormat) > 0 {
