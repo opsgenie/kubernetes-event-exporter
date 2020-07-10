@@ -3,7 +3,6 @@ package batch
 import (
 	"context"
 	"time"
-	"github.com/rs/zerolog/log"
 )
 
 
@@ -55,7 +54,6 @@ func (w *Writer) Start() {
 		for shouldGoOn {
 			select {
 			case item := <-w.items:
-                                log.Info().Msgf("w.len: %v, w.cfg.BatchSize: %v", w.len, w.cfg.BatchSize)
 				if w.len >= w.cfg.BatchSize {
 					w.processBuffer(context.Background())
 					w.len = 0
@@ -69,7 +67,6 @@ func (w *Writer) Start() {
 				w.stopDone <- true
 				ticker.Stop()
 			case <-ticker.C:
-                                log.Info().Msgf("ticker")
 				w.processBuffer(context.Background())
 			}
 		}
@@ -81,7 +78,6 @@ func (w *Writer) processBuffer(ctx context.Context) {
 		return
 	}
 
-	log.Info().Msgf("processBuffer, w.len: %v", w.len)
 
 	// Need to copy the underlying item to another slice
 	slice := make([]interface{}, w.len)
@@ -112,7 +108,6 @@ func (w *Writer) processBuffer(ctx context.Context) {
 		}
 	}
 
-	log.Info().Msgf("processBuffer, newItemsCount: %v", newItemsCount)
 	w.len = newItemsCount
 	// TODO(makin) an edge case, if all items fail, and the buffer is full, new item cannot be added to buffer.
 }
@@ -128,5 +123,4 @@ func (w *Writer) Submit(items ...interface{}) {
 	for _, item := range items {
 		w.items <- item
 	}
-	log.Info().Msgf("Submit done.")
 }
