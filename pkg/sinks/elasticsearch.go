@@ -143,6 +143,9 @@ func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
                 if err := importJsonFromFile(path); err != nil {
                     log.Error().Msgf("BigQuery load failed: %v", err)
                 }
+                if err := os.Remove(path); err != nil {
+                    log.Error().Msgf("Failed to delete file %v: %v", path, err)
+                }
 		return res
 	}
 	batchWriter := batch.NewWriter(
@@ -246,6 +249,7 @@ func importJSONAutodetectSchema(projectID, datasetID, tableID string) error {
 func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	log.Info().Msgf("add to buffer...")
 	e.batchWriter.Submit(ev)
+
         return nil
 	// var index string
 	// if len(e.cfg.IndexFormat) > 0 {
