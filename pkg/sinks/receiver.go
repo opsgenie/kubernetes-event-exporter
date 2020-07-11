@@ -9,7 +9,7 @@ type ReceiverConfig struct {
 	InMemory      *InMemoryConfig      `yaml:"inMemory"`
 	Webhook       *WebhookConfig       `yaml:"webhook"`
 	File          *FileConfig          `yaml:"file"`
-	Elasticsearch *ElasticsearchConfig `yaml:"elasticsearch"`
+	Bigquery *BigqueryConfig `yaml:"bigquery"`
 	Kinesis       *KinesisConfig       `yaml:"kinesis"`
 	Opsgenie      *OpsgenieConfig      `yaml:"opsgenie"`
 	SQS           *SQSConfig           `yaml:"sqs"`
@@ -47,9 +47,9 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 	}
 
 	fmt.Println("debug1")
-	if r.Elasticsearch != nil {
-		fmt.Println("debug NewElasticsearch")
-		return NewElasticsearch(r.Elasticsearch)
+	if r.Bigquery != nil {
+		fmt.Println("debug NewBigquery")
+		return NewBigquery(r.Bigquery)
 	}
 	fmt.Println("debug2")
 

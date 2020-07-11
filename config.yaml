@@ -5,7 +5,14 @@ route:
         - receiver: "dump"
 receivers:
   - name: "dump"
-    elasticsearch:
+    bigquery:
+      interval_seconds: 10
+      timeout_seconds: 60
+      batch_size: 1000
+      max_retries: 3
+      project: "autonomous-173023"
+      dataset: "av_viktor"
+      table: "k8s_test_08"
       hosts:
         - "http://localhost:9200"
       indexFormat: "kube-events-{2006-01-02}"
