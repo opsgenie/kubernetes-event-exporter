@@ -2,18 +2,18 @@ package sinks
 
 import (
 	// "bytes"
-        "bufio"
-        "os"
-        "cloud.google.com/go/bigquery"
+	"bufio"
+	"cloud.google.com/go/bigquery"
 	"context"
-        "encoding/json"
+	"encoding/json"
+	"os"
 	// "crypto/tls"
 	// "encoding/json"
-        "fmt"
+	"fmt"
 	"github.com/elastic/go-elasticsearch/v7"
 	// "github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/batch"
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog/log"
 	// "io/ioutil"
 	// "net/http"
@@ -23,57 +23,56 @@ import (
 )
 
 func writeBatchToJsonFile(items []interface{}, path string) error {
-        file, err := os.Create(path)
-        if err != nil {
-          return err
-        }
-        defer file.Close()
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
 
-        writer := bufio.NewWriter(file)
-        for i := 0; i < len(items); i++ {
-                fmt.Fprintln(writer, string(items[i].ToJSON()))
-        }
-        return writer.Flush();
+	writer := bufio.NewWriter(file)
+	for i := 0; i < len(items); i++ {
+		fmt.Fprintln(writer, string(items[i].ToJSON()))
+	}
+	return writer.Flush()
 }
 
 func importJsonFromFile(path string) error {
-        projectID := "autonomous-173023"
-        datasetID := "av_viktor"
-        tableID := "k8s_test_08"
-        ctx := context.Background()
-        client, err := bigquery.NewClient(ctx, projectID)
-        if err != nil {
-                return fmt.Errorf("bigquery.NewClient: %v", err)
-        }
-        defer client.Close()
+	projectID := "autonomous-173023"
+	datasetID := "av_viktor"
+	tableID := "k8s_test_08"
+	ctx := context.Background()
+	client, err := bigquery.NewClient(ctx, projectID)
+	if err != nil {
+		return fmt.Errorf("bigquery.NewClient: %v", err)
+	}
+	defer client.Close()
 
-        f, err := os.Open(path)
-        if err != nil {
-                return err
-        }
-        source := bigquery.NewReaderSource(f)
-        source.SourceFormat = bigquery.JSON
-        source.AutoDetect = true   // Allow BigQuery to determine schema.
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	source := bigquery.NewReaderSource(f)
+	source.SourceFormat = bigquery.JSON
+	source.AutoDetect = true // Allow BigQuery to determine schema.
 
-        loader := client.Dataset(datasetID).Table(tableID).LoaderFrom(source)
+	loader := client.Dataset(datasetID).Table(tableID).LoaderFrom(source)
 
 	log.Info().Msgf("loader.Run...")
-        job, err := loader.Run(ctx)
-        if err != nil {
-                return err
-        }
+	job, err := loader.Run(ctx)
+	if err != nil {
+		return err
+	}
 	log.Info().Msgf("loader.Wait...")
-        status, err := job.Wait(ctx)
-        if err != nil {
-                return err
-        }
+	status, err := job.Wait(ctx)
+	if err != nil {
+		return err
+	}
 	log.Info().Msgf("loader done.")
-        if err := status.Err(); err != nil {
-                return err
-        }
-        return nil
+	if err := status.Err(); err != nil {
+		return err
+	}
+	return nil
 }
-
 
 type ElasticsearchConfig struct {
 	// Connection specific
@@ -95,9 +94,9 @@ type ElasticsearchConfig struct {
 }
 
 func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
-        fmt.Println("NewElasticsearch");
+	fmt.Println("NewElasticsearch")
 	log.Info().Msgf("NewElasticsearch cfg: %v", cfg)
-        fmt.Println("NewElasticsearch");
+	fmt.Println("NewElasticsearch")
 	// var caCert []byte
 
 	// if len(cfg.TLS.CaFile) > 0 {
@@ -132,40 +131,40 @@ func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
 		res := make([]bool, len(items))
 		for i := 0; i < len(items); i++ {
 			res[i] = true
-                }
-                path := "/tmp/batch.json"
-                if err := writeBatchToJsonFile(items, path); err != nil {
-                    log.Error().Msgf("Failed to write JSON file: %v", err)
-                }
-                if err := importJsonFromFile(path); err != nil {
-                    log.Error().Msgf("BigQuery load failed: %v", err)
-                } else {
-                    if err := os.Remove(path); err != nil {
-                        log.Error().Msgf("Failed to delete file %v: %v", path, err)
-                    }
-                }
+		}
+		path := "/tmp/batch.json"
+		if err := writeBatchToJsonFile(items, path); err != nil {
+			log.Error().Msgf("Failed to write JSON file: %v", err)
+		}
+		if err := importJsonFromFile(path); err != nil {
+			log.Error().Msgf("BigQuery load failed: %v", err)
+		} else {
+			if err := os.Remove(path); err != nil {
+				log.Error().Msgf("Failed to delete file %v: %v", path, err)
+			}
+		}
 		return res
 	}
 	batchWriter := batch.NewWriter(
-                batch.WriterConfig{
-                        BatchSize: 1000,
-                        MaxRetries: 3,
-                        Interval: time.Duration(10) * time.Second,
-                        Timeout: time.Duration(60) * time.Second,
-                },
-                myfunc,
-        )
-        batchWriter.Start()
+		batch.WriterConfig{
+			BatchSize:  1000,
+			MaxRetries: 3,
+			Interval:   time.Duration(10) * time.Second,
+			Timeout:    time.Duration(60) * time.Second,
+		},
+		myfunc,
+	)
+	batchWriter.Start()
 	return &Elasticsearch{
-		client: nil,
-		cfg:    nil,
+		client:      nil,
+		cfg:         nil,
 		batchWriter: batchWriter,
 	}, nil
 }
 
 type Elasticsearch struct {
-	client *elasticsearch.Client
-	cfg    *ElasticsearchConfig
+	client      *elasticsearch.Client
+	cfg         *ElasticsearchConfig
 	batchWriter *batch.Writer
 }
 
@@ -192,7 +191,7 @@ func formatIndexName(pattern string, when time.Time) string {
 func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	log.Info().Msgf("add to buffer...")
 	e.batchWriter.Submit(ev)
-        return nil
+	return nil
 	// var index string
 	// if len(e.cfg.IndexFormat) > 0 {
 	// 	now := time.Now()
