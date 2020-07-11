@@ -45,24 +45,24 @@ func importJsonFromFile(path, projectID, datasetID, tableID string) error {
 
 	loader := client.Dataset(datasetID).Table(tableID).LoaderFrom(source)
 
-	log.Info().Msgf("loader.Run...")
+	log.Debug().Msgf("loader.Run...")
 	job, err := loader.Run(ctx)
 	if err != nil {
 		return err
 	}
-	log.Info().Msgf("loader.Wait...")
+	log.Debug().Msgf("loader.Wait...")
 	status, err := job.Wait(ctx)
 	if err != nil {
 		return err
 	}
-	log.Info().Msgf("loader done.")
+	log.Debug().Msgf("loader done.")
 	if err := status.Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// TODO(vsbus): test with a table that has limited permissions
+// TODO(vsbus): test it with a table that has limited permissions
 type BigqueryConfig struct {
 	// BigQuery table config
 	// TODO(vsbus): add validator for BQ configs to be set
@@ -108,9 +108,7 @@ func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
 	)
 	batchWriter.Start()
 
-	return &Bigquery{
-		batchWriter: batchWriter,
-	}, nil
+	return &Bigquery{batchWriter: batchWriter}, nil
 }
 
 type Bigquery struct {
