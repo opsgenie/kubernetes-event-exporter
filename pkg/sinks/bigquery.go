@@ -1,24 +1,14 @@
 package sinks
 
 import (
-	// "bytes"
 	"bufio"
 	"cloud.google.com/go/bigquery"
 	"context"
-	//"encoding/json"
 	"os"
-	// "crypto/tls"
-	// "encoding/json"
 	"fmt"
-	//"github.com/elastic/go-elasticsearch/v7"
-	// "github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/batch"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog/log"
-	// "io/ioutil"
-	// "net/http"
-	//"regexp"
-	//"strings"
 	"time"
 )
 
@@ -31,7 +21,7 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 
 	writer := bufio.NewWriter(file)
 	for i := 0; i < len(items); i++ {
-                event := items[i].(*kube.EnhancedEvent)
+		event := items[i].(*kube.EnhancedEvent)
 		fmt.Fprintln(writer, string(event.ToJSON()))
 	}
 	return writer.Flush()
@@ -74,17 +64,17 @@ func importJsonFromFile(path, projectID, datasetID, tableID string) error {
 
 // TODO(vsbus): test with a table that has limited permissions
 type BigqueryConfig struct {
-        // BigQuery table config
-        // TODO(vsbus): add validator for BQ configs to be set
-        Project string `yaml:"project"`
-        Dataset string `yaml:"dataset"`
-        Table string `yaml:"table"`
-        // Batching config
-        // TODO(vsbus): set default values
-        BatchSize int `yaml:"batch_size"`
-        MaxRetries int `yaml:"max_retries"`
-        IntervalSeconds int `yaml:"interval_seconds"`
-        TimeoutSeconds int `yaml:"timeout_seconds"`
+	// BigQuery table config
+	// TODO(vsbus): add validator for BQ configs to be set
+	Project string `yaml:"project"`
+	Dataset string `yaml:"dataset"`
+	Table   string `yaml:"table"`
+	// Batching config
+	// TODO(vsbus): set default values
+	BatchSize       int `yaml:"batch_size"`
+	MaxRetries      int `yaml:"max_retries"`
+	IntervalSeconds int `yaml:"interval_seconds"`
+	TimeoutSeconds  int `yaml:"timeout_seconds"`
 }
 
 func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {

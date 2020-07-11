@@ -8,7 +8,7 @@ type ReceiverConfig struct {
 	InMemory      *InMemoryConfig      `yaml:"inMemory"`
 	Webhook       *WebhookConfig       `yaml:"webhook"`
 	File          *FileConfig          `yaml:"file"`
-        Elasticsearch *ElasticsearchConfig `yaml:"elasticsearch"`
+	Elasticsearch *ElasticsearchConfig `yaml:"elasticsearch"`
 	Kinesis       *KinesisConfig       `yaml:"kinesis"`
 	Opsgenie      *OpsgenieConfig      `yaml:"opsgenie"`
 	SQS           *SQSConfig           `yaml:"sqs"`
@@ -18,7 +18,7 @@ type ReceiverConfig struct {
 	Pubsub        *PubsubConfig        `yaml:"pubsub"`
 	Opscenter     *OpsCenterConfig     `yaml:"opscenter"`
 	Teams         *TeamsConfig         `yaml:"teams"`
-	Bigquery *BigqueryConfig `yaml:"bigquery"`
+	Bigquery      *BigqueryConfig      `yaml:"bigquery"`
 }
 
 func (r *ReceiverConfig) Validate() error {
@@ -43,9 +43,9 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 		return NewFileSink(r.File)
 	}
 
-        if r.Elasticsearch != nil {
+	if r.Elasticsearch != nil {
 		return NewElasticsearch(r.Elasticsearch)
-        }
+	}
 
 	if r.Kinesis != nil {
 		return NewKinesisSink(r.Kinesis)
