@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"cloud.google.com/go/bigquery"
 	"context"
-	"os"
 	"fmt"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/batch"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog/log"
+	"os"
 	"time"
 )
 
@@ -39,10 +39,10 @@ func importJsonFromFile(path, projectID, datasetID, tableID string) error {
 	if err != nil {
 		return err
 	}
-        fi, err := f.Stat()
-        if err != nil {
-                return err
-        }
+	fi, err := f.Stat()
+	if err != nil {
+		return err
+	}
 
 	source := bigquery.NewReaderSource(f)
 	source.SourceFormat = bigquery.JSON
@@ -50,7 +50,7 @@ func importJsonFromFile(path, projectID, datasetID, tableID string) error {
 
 	loader := client.Dataset(datasetID).Table(tableID).LoaderFrom(source)
 
-	log.Info().Msgf("Bigquery batch uploading %f MBs...", float64(fi.Size()) / 1e6)
+	log.Info().Msgf("Bigquery batch uploading %f MBs...", float64(fi.Size())/1e6)
 	job, err := loader.Run(ctx)
 	if err != nil {
 		return err
