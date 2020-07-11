@@ -13,7 +13,20 @@ type EnhancedEvent struct {
 
 // Using an alias for map to allow overloading MarshalJSON. It is needed for some sinks to make
 // output JSON compatible with the external system, e.g. BigQuery.
+// TODO(vsbus): find a way to customize Map encoder externally.
 type Map map[string]string
+func (m Map) MarshalJSON() ([]byte, error) {
+    type KV struct {
+	  Key string
+	  Value string
+    }
+    var s []KV
+    for key, value := range m {
+        s = append(s, KV{Key: key, Value: value})
+    }
+
+    return json.Marshal(s)
+}
 
 type EnhancedObjectReference struct {
 	corev1.ObjectReference `json:",inline"`

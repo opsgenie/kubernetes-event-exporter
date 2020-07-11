@@ -63,7 +63,7 @@ func writeBatchToJsonFile(path string, items []interface{}) error {
 func importJsonFromFile(filename string) error {
         projectID := "autonomous-173023"
         datasetID := "av_viktor"
-        tableID := "k8s_test_07"
+        tableID := "k8s_test_08"
         ctx := context.Background()
         client, err := bigquery.NewClient(ctx, projectID)
         if err != nil {
@@ -144,9 +144,10 @@ func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
                 }
                 if err := importJsonFromFile(path); err != nil {
                     log.Error().Msgf("BigQuery load failed: %v", err)
-                }
-                if err := os.Remove(path); err != nil {
-                    log.Error().Msgf("Failed to delete file %v: %v", path, err)
+                } else {
+                    if err := os.Remove(path); err != nil {
+                        log.Error().Msgf("Failed to delete file %v: %v", path, err)
+                    }
                 }
 		return res
 	}
