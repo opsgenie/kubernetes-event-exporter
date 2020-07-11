@@ -39,23 +39,27 @@ func importJsonFromFile(path, projectID, datasetID, tableID string) error {
 	if err != nil {
 		return err
 	}
+        fi, err := f.Stat()
+        if err != nil {
+                return err
+        }
+
 	source := bigquery.NewReaderSource(f)
 	source.SourceFormat = bigquery.JSON
 	source.AutoDetect = true // Allow BigQuery to determine schema.
 
 	loader := client.Dataset(datasetID).Table(tableID).LoaderFrom(source)
 
-	log.Debug().Msgf("loader.Run...")
+	log.Info().Msgf("Bigquery batch uploading %f MBs...", float64(fi.Size()) / 1e6)
 	job, err := loader.Run(ctx)
 	if err != nil {
 		return err
 	}
-	log.Debug().Msgf("loader.Wait...")
 	status, err := job.Wait(ctx)
 	if err != nil {
 		return err
 	}
-	log.Debug().Msgf("loader done.")
+	log.Info().Msgf("Bigquery batch uploading done.")
 	if err := status.Err(); err != nil {
 		return err
 	}
