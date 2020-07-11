@@ -70,5 +70,5 @@ receivers:
 #      gcloud_project_id: "my-project"
 #      topic: "kube-event"
 #      create_topic: False
-    file:
-      path: "/dev/stdout"
+#    file:
+#      path: "/dev/stdout"

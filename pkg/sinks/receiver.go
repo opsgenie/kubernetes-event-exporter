@@ -34,19 +34,24 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 		r.InMemory.Ref = sink
 		return sink, nil
 	}
+        fmt.Println("debug1");
 
 	// Sorry for this code, but its Go
 	if r.Webhook != nil {
 		return NewWebhook(r.Webhook)
 	}
+        fmt.Println("debug1");
 
 	if r.File != nil {
 		return NewFileSink(r.File)
 	}
 
+        fmt.Println("debug1");
 	if r.Elasticsearch != nil {
+                fmt.Println("debug NewElasticsearch");
 		return NewElasticsearch(r.Elasticsearch)
 	}
+        fmt.Println("debug2");
 
 	if r.Kinesis != nil {
 		return NewKinesisSink(r.Kinesis)

@@ -100,7 +100,9 @@ func importJsonFromFile(filename string) error {
 
 
 func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
+        fmt.Println("NewElasticsearch");
 	log.Info().Msgf("NewElasticsearch cfg: %v", cfg)
+        fmt.Println("NewElasticsearch");
 	// var caCert []byte
 
 	// if len(cfg.TLS.CaFile) > 0 {
@@ -189,61 +191,6 @@ func formatIndexName(pattern string, when time.Time) string {
 	builder.WriteString(pattern[current:])
 
 	return builder.String()
-}
-
-// func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
-// 	var toSend []byte
-// 
-// 	if e.cfg.Layout != nil {
-// 		res, err := convertLayoutTemplate(e.cfg.Layout, ev)
-// 		if err != nil {
-// 			return err
-// 		}
-// 
-// 		toSend, err = json.Marshal(res)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	} else {
-// 		toSend = ev.ToJSON()
-// 	}
-// =======
-// 	req := esapi.IndexRequest{
-// 		Body:  bytes.NewBuffer(toSend),
-// 		Index: index,
-// 	}
-// >>>>>>> 8a6aaabc41f83353bacb03f1b082debd304693d1
-
-
-func importJSONAutodetectSchema(projectID, datasetID, tableID string) error {
-        // projectID := "my-project-id"
-        // datasetID := "mydataset"
-        // tableID := "mytable"
-        ctx := context.Background()
-        client, err := bigquery.NewClient(ctx, projectID)
-        if err != nil {
-                return fmt.Errorf("bigquery.NewClient: %v", err)
-        }
-        defer client.Close()
-
-        gcsRef := bigquery.NewGCSReference("gs://cloud-samples-data/bigquery/us-states/us-states.json")
-        gcsRef.SourceFormat = bigquery.JSON
-        gcsRef.AutoDetect = true
-        loader := client.Dataset(datasetID).Table(tableID).LoaderFrom(gcsRef)
-        loader.WriteDisposition = bigquery.WriteEmpty
-        job, err := loader.Run(ctx)
-        if err != nil {
-                return err
-        }
-        status, err := job.Wait(ctx)
-        if err != nil {
-                return err
-        }
-
-        if status.Err() != nil {
-                return fmt.Errorf("job completed with error: %v", status.Err())
-        }
-        return nil
 }
 
 func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
