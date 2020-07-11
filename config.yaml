@@ -1,6 +1,4 @@
-logLevel: error
-logFormat: json
-# namespace: tekton-pipelines
+logLevel: debug
 route:
   routes:
     - match:

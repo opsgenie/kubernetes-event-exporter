@@ -61,9 +61,9 @@ func writeBatchToJsonFile(path string, items []interface{}) error {
 }
 
 func importJsonFromFile(filename string) error {
-        projectID := "foo"
-        datasetID := "bar"
-        tableID := "baz"
+        projectID := "autonomous-173023"
+        datasetID := "av_viktor"
+        tableID := "k8s_test_07"
         ctx := context.Background()
         client, err := bigquery.NewClient(ctx, projectID)
         if err != nil {
