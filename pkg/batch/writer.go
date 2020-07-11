@@ -78,7 +78,6 @@ func (w *Writer) processBuffer(ctx context.Context) {
 		return
 	}
 
-
 	// Need to copy the underlying item to another slice
 	slice := make([]interface{}, w.len)
 	for i := 0; i < w.len; i++ {

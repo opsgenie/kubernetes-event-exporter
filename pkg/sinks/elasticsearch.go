@@ -22,26 +22,7 @@ import (
 	"time"
 )
 
-type ElasticsearchConfig struct {
-	// Connection specific
-	Hosts    []string `yaml:"hosts"`
-	Username string   `yaml:"username"`
-	Password string   `yaml:"password"`
-	CloudID  string   `yaml:"cloudID"`
-	APIKey   string   `yaml:"apiKey"`
-	// Indexing preferences
-	UseEventID  bool   `yaml:"useEventID"`
-	Index       string `yaml:"index"`
-	IndexFormat string `yaml:"indexFormat"`
-	TLS         struct {
-		InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
-		ServerName         string `yaml:"serverName"`
-		CaFile             string `yaml:"caFile"`
-	} `yaml:"tls"`
-	Layout map[string]interface{} `yaml:"layout"`
-}
-
-func writeBatchToJsonFile(path string, items []interface{}) error {
+func writeBatchToJsonFile(items []interface{}, path string) error {
         file, err := os.Create(path)
         if err != nil {
           return err
@@ -50,17 +31,12 @@ func writeBatchToJsonFile(path string, items []interface{}) error {
 
         writer := bufio.NewWriter(file)
         for i := 0; i < len(items); i++ {
-                jsonBytes, err := json.Marshal(items[i])
-                if err != nil {
-                    log.Warn().Msgf("Failed to convert item to json: %v", items[i])
-                } else {
-                    fmt.Fprintln(writer, string(jsonBytes))
-                }
+                fmt.Fprintln(writer, string(items[i].ToJSON()))
         }
         return writer.Flush();
 }
 
-func importJsonFromFile(filename string) error {
+func importJsonFromFile(path string) error {
         projectID := "autonomous-173023"
         datasetID := "av_viktor"
         tableID := "k8s_test_08"
@@ -71,7 +47,7 @@ func importJsonFromFile(filename string) error {
         }
         defer client.Close()
 
-        f, err := os.Open(filename)
+        f, err := os.Open(path)
         if err != nil {
                 return err
         }
@@ -98,6 +74,25 @@ func importJsonFromFile(filename string) error {
         return nil
 }
 
+
+type ElasticsearchConfig struct {
+	// Connection specific
+	Hosts    []string `yaml:"hosts"`
+	Username string   `yaml:"username"`
+	Password string   `yaml:"password"`
+	CloudID  string   `yaml:"cloudID"`
+	APIKey   string   `yaml:"apiKey"`
+	// Indexing preferences
+	UseEventID  bool   `yaml:"useEventID"`
+	Index       string `yaml:"index"`
+	IndexFormat string `yaml:"indexFormat"`
+	TLS         struct {
+		InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
+		ServerName         string `yaml:"serverName"`
+		CaFile             string `yaml:"caFile"`
+	} `yaml:"tls"`
+	Layout map[string]interface{} `yaml:"layout"`
+}
 
 func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
         fmt.Println("NewElasticsearch");
@@ -139,7 +134,7 @@ func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
 			res[i] = true
                 }
                 path := "/tmp/batch.json"
-                if err := writeBatchToJsonFile(path, items); err != nil {
+                if err := writeBatchToJsonFile(items, path); err != nil {
                     log.Error().Msgf("Failed to write JSON file: %v", err)
                 }
                 if err := importJsonFromFile(path); err != nil {
