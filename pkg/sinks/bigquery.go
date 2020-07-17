@@ -3,6 +3,7 @@ package sinks
 import (
 	"bufio"
 	"cloud.google.com/go/bigquery"
+        "google.golang.org/api/option"
 	"context"
 	"fmt"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/batch"
@@ -27,9 +28,27 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 	return writer.Flush()
 }
 
+func createDataset(projectID, datasetID string) error {
+        ctx := context.Background()
+
+        client, err := bigquery.NewClient(ctx, projectID, option.WithCredentialsFile("/tmp/bq_pdx_dev.json"))
+        if err != nil {
+                return fmt.Errorf("bigquery.NewClient: %v", err)
+        }
+        defer client.Close()
+
+        meta := &bigquery.DatasetMetadata{
+                Location: "US", // See https://cloud.google.com/bigquery/docs/locations
+        }
+        if err := client.Dataset(datasetID).Create(ctx, meta); err != nil {
+                return err
+        }
+        return nil
+}
+
 func importJsonFromFile(path, projectID, datasetID, tableID string) error {
 	ctx := context.Background()
-	client, err := bigquery.NewClient(ctx, projectID)
+	client, err := bigquery.NewClient(ctx, projectID, option.WithCredentialsFile("/tmp/bq_pdx_dev.json"))
 	if err != nil {
 		return fmt.Errorf("bigquery.NewClient: %v", err)
 	}
@@ -100,6 +119,10 @@ func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
 		}
 		return res
 	}
+
+        if err := createDataset(cfg.Project, cfg.Dataset); err != nil {
+                log.Error().Msgf("BigQuery create dataset failed: %v", err)
+        }
 
 	batchWriter := batch.NewWriter(
 		batch.WriterConfig{
