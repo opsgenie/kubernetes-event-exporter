@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"cloud.google.com/go/bigquery"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/batch"
@@ -71,7 +72,7 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 		event := items[i].(*kube.EnhancedEvent)
 		var mapStruct map[string]interface{}
 		json.Unmarshal(event.ToJSON(), &mapStruct)
-		jsonBytes, _ = json.Marshal(fixKeys(dropNils(mapStruct)))
+		jsonBytes, _ := json.Marshal(fixKeys(dropNils(mapStruct)))
 		fmt.Fprintln(writer, string(jsonBytes))
 	}
 	return writer.Flush()
@@ -133,10 +134,8 @@ func importJsonFromFile(path string, cfg *BigqueryConfig) error {
 	return nil
 }
 
-// TODO(vsbus): test it with a table that has limited permissions
 type BigqueryConfig struct {
 	// BigQuery table config
-	// TODO(vsbus): add validator for BQ configs to be set
 	Project string `yaml:"project"`
 	Dataset string `yaml:"dataset"`
 	Table   string `yaml:"table"`
@@ -145,7 +144,6 @@ type BigqueryConfig struct {
 	CredentialsPath string `yaml:"credentials_path"`
 
 	// Batching config
-	// TODO(vsbus): set default values
 	BatchSize       int `yaml:"batch_size"`
 	MaxRetries      int `yaml:"max_retries"`
 	IntervalSeconds int `yaml:"interval_seconds"`
