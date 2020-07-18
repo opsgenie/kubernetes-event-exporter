@@ -28,27 +28,25 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 	return writer.Flush()
 }
 
-func createDataset(projectID, datasetID string) error {
+func createDataset(cfg *BigqueryConfig) () error {
         ctx := context.Background()
 
-        client, err := bigquery.NewClient(ctx, projectID, option.WithCredentialsFile("/tmp/bq_pdx_dev.json"))
+        client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
         if err != nil {
                 return fmt.Errorf("bigquery.NewClient: %v", err)
         }
         defer client.Close()
 
-        meta := &bigquery.DatasetMetadata{
-                Location: "US", // See https://cloud.google.com/bigquery/docs/locations
-        }
-        if err := client.Dataset(datasetID).Create(ctx, meta); err != nil {
+        meta := &bigquery.DatasetMetadata{Location: "US"}
+        if err := client.Dataset(cfg.Dataset).Create(ctx, meta); err != nil {
                 return err
         }
         return nil
 }
 
-func importJsonFromFile(path, projectID, datasetID, tableID string) error {
+func importJsonFromFile(cfg *BigqueryConfig) (path string) error {
 	ctx := context.Background()
-	client, err := bigquery.NewClient(ctx, projectID, option.WithCredentialsFile("/tmp/bq_pdx_dev.json"))
+	client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
 	if err != nil {
 		return fmt.Errorf("bigquery.NewClient: %v", err)
 	}
@@ -67,7 +65,7 @@ func importJsonFromFile(path, projectID, datasetID, tableID string) error {
 	source.SourceFormat = bigquery.JSON
 	source.AutoDetect = true // Allow BigQuery to determine schema.
 
-	loader := client.Dataset(datasetID).Table(tableID).LoaderFrom(source)
+	loader := client.Dataset(cfg.Dataset).Table(cfg.Table).LoaderFrom(source)
 
 	log.Info().Msgf("Bigquery batch uploading %f MBs...", float64(fi.Size())/1e6)
 	job, err := loader.Run(ctx)
@@ -92,6 +90,10 @@ type BigqueryConfig struct {
 	Project string `yaml:"project"`
 	Dataset string `yaml:"dataset"`
 	Table   string `yaml:"table"`
+
+	// Path to a JSON file that contains your service account key.
+	CredentialsPath string  `yaml:"credentials_path"`
+
 	// Batching config
 	// TODO(vsbus): set default values
 	BatchSize       int `yaml:"batch_size"`
@@ -101,6 +103,22 @@ type BigqueryConfig struct {
 }
 
 func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
+	if cfg.Project = ""
+		return nil, "BigqueryConfig.Project must be non-empty"
+	if cfg.Dataset = ""
+		return nil, "BigqueryConfig.Dataset must be non-empty"
+	if cfg.Table = ""
+		return nil, "BigqueryConfig.Dataset must be non-empty"
+
+	if cfg.BatchSize = 0
+		return nil, "BigqueryConfig.BatchSize must be positive"
+	if cfg.MaxRetries = 0
+		return nil, "BigqueryConfig.MaxRetries must be positive"
+	if cfg.IntervalSeconds = 0
+		return nil, "BigqueryConfig.IntervalSeconds must be positive"
+	if cfg.TimeoutSeconds = 0
+		return nil, "BigqueryConfig.TimeoutSeconds must be positive"
+
 	handleBatch := func(ctx context.Context, items []interface{}) []bool {
 		res := make([]bool, len(items))
 		for i := 0; i < len(items); i++ {
