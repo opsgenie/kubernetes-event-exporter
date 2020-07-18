@@ -14,8 +14,8 @@ type EnhancedEvent struct {
 
 type EnhancedObjectReference struct {
 	corev1.ObjectReference `json:",inline"`
-	Labels                 map[string]string `json:"labels,omitempty"`
-	Annotations            map[string]string `json:"annotations,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // Returns a map filtering out keys that have nil value assigned.
