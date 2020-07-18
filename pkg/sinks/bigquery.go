@@ -64,9 +64,10 @@ func importJsonFromFile(path string, cfg *BigqueryConfig) error {
 
 	source := bigquery.NewReaderSource(f)
 	source.SourceFormat = bigquery.JSON
-	source.AutoDetect = true // Allow BigQuery to determine schema.
+	source.AutoDetect = true
 
 	loader := client.Dataset(cfg.Dataset).Table(cfg.Table).LoaderFrom(source)
+        loader.SchemaUpdateOptions = []string{"ALLOW_FIELD_ADDITION"}
 
 	log.Info().Msgf("Bigquery batch uploading %f MBs...", float64(fi.Size())/1e6)
 	job, err := loader.Run(ctx)
