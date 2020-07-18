@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"cloud.google.com/go/bigquery"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/batch"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
@@ -28,25 +29,25 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 	return writer.Flush()
 }
 
-func (e *Bigquery) createDataset() error {
+func createDataset(cfg *BigqueryConfig) error {
 	ctx := context.Background()
 
-	client, err := bigquery.NewClient(ctx, e.Project, option.WithCredentialsFile(e.CredentialsPath))
+	client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
 	if err != nil {
 		return fmt.Errorf("bigquery.NewClient: %v", err)
 	}
 	defer client.Close()
 
 	meta := &bigquery.DatasetMetadata{Location: "US"}
-	if err := client.Dataset(e.Dataset).Create(ctx, meta); err != nil {
+	if err := client.Dataset(cfg.Dataset).Create(ctx, meta); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (e *Bigquery) importJsonFromFile(path string) error {
+func importJsonFromFile(path string, cfg *BigqueryConfig) error {
 	ctx := context.Background()
-	client, err := bigquery.NewClient(ctx, e.Project, option.WithCredentialsFile(e.CredentialsPath))
+	client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
 	if err != nil {
 		return fmt.Errorf("bigquery.NewClient: %v", err)
 	}
@@ -65,7 +66,7 @@ func (e *Bigquery) importJsonFromFile(path string) error {
 	source.SourceFormat = bigquery.JSON
 	source.AutoDetect = true // Allow BigQuery to determine schema.
 
-	loader := client.Dataset(e.Dataset).Table(e.Table).LoaderFrom(source)
+	loader := client.Dataset(cfg.Dataset).Table(cfg.Table).LoaderFrom(source)
 
 	log.Info().Msgf("Bigquery batch uploading %f MBs...", float64(fi.Size())/1e6)
 	job, err := loader.Run(ctx)
@@ -104,26 +105,26 @@ type BigqueryConfig struct {
 
 func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
 	if cfg.Project == "" {
-		return nil, "BigqueryConfig.Project must be non-empty"
+		return nil, errors.New("bigquery.project config option must be non-empty")
 	}
 	if cfg.Dataset == "" {
-		return nil, "BigqueryConfig.Dataset must be non-empty"
+		return nil, errors.New("bigquery.dataset config option must be non-empty")
 	}
 	if cfg.Table == "" {
-		return nil, "BigqueryConfig.Dataset must be non-empty"
+		return nil, errors.New("bigquery.table config option must be non-empty")
 	}
 
 	if cfg.BatchSize == 0 {
-		return nil, "BigqueryConfig.BatchSize must be positive"
+		return nil, errors.New("bigquery.batch_size config option must be positive")
 	}
 	if cfg.MaxRetries == 0 {
-		return nil, "BigqueryConfig.MaxRetries must be positive"
+		return nil, errors.New("bigquery.max_retries config option must be positive")
 	}
 	if cfg.IntervalSeconds == 0 {
-		return nil, "BigqueryConfig.IntervalSeconds must be positive"
+		return nil, errors.New("bigquery.interval_seconds config option must be positive")
 	}
 	if cfg.TimeoutSeconds == 0 {
-		return nil, "BigqueryConfig.TimeoutSeconds must be positive"
+		return nil, errors.New("bigquery.timeout_seconds config option must be positive")
 	}
 
 	handleBatch := func(ctx context.Context, items []interface{}) []bool {
@@ -135,7 +136,7 @@ func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
 		if err := writeBatchToJsonFile(items, path); err != nil {
 			log.Error().Msgf("Failed to write JSON file: %v", err)
 		}
-		if err := importJsonFromFile(path, cfg.Project, cfg.Dataset, cfg.Table); err != nil {
+		if err := importJsonFromFile(path, cfg); err != nil {
 			log.Error().Msgf("BigQuery load failed: %v", err)
 		} else {
 			if err := os.Remove(path); err != nil {
@@ -145,7 +146,7 @@ func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
 		return res
 	}
 
-	if err := createDataset(cfg.Project, cfg.Dataset); err != nil {
+	if err := createDataset(cfg); err != nil {
 		log.Error().Msgf("BigQuery create dataset failed: %v", err)
 	}
 

@@ -1,4 +1,4 @@
-logLevel: debug
+#logLevel: debug
 route:
   routes:
     - match:
@@ -12,10 +12,8 @@ receivers:
       max_retries: 3
       project: "pdx-dev-72964def"
       dataset: "av_viktor"
-      table: "k8s_test_01"
-      hosts:
-        - "http://localhost:9200"
-      indexFormat: "kube-events-{2006-01-02}"
+      table: "k8s_test_02"
+      credentials_path: "/tmp/bq_pdx_dev.json"
 #  - name: "alert"
 #    opsgenie:
 #      apiKey: ""
