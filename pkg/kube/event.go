@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	corev1 "k8s.io/api/core/v1"
 	"time"
-	"unicode"
 )
 
 type EnhancedEvent struct {
@@ -14,8 +13,8 @@ type EnhancedEvent struct {
 
 type EnhancedObjectReference struct {
 	corev1.ObjectReference `json:",inline"`
-	Labels                 map[string]string `json:"labels,omitempty"`
-	Annotations            map[string]string `json:"annotations,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // ToJSON does not return an error because we are %99 confident it is JSON serializable.
