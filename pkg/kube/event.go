@@ -35,6 +35,49 @@ type EnhancedObjectReference struct {
 	Annotations Map `json:"annotations,omitempty"`
 }
 
+// Returns a map filtering out keys that have nil value assigned.
+func dropNils(x map[string]interface{}) map[string]interface{} {
+    y := make(map[string]interface{})
+    for key, value := range x {
+        if value != nil {
+            if mapValue, ok := value.(map[string]interface{}); ok {
+                y[key] = dropNils(mapValue)
+            } else {
+                y[key] = value
+            }
+        }
+    }
+    return y
+}
+
+// Returns a string representing a fixed key. BigQuery expects keys to be valid identifiers, so if they aren't we modify them.
+func fixKey(key string) string {
+        var fixedKey string
+        if !unicode.IsLetter(rune(key[0])) {
+            fixedKey = "_"
+        }
+        for _, ch := range key {
+            if unicode.IsLetter(ch) || unicode.IsDigit(ch) {
+                fixedKey = fixedKey + string(ch)
+            } else {
+                fixedKey = fixedKey + "_"
+            }
+        }
+        return fixedKey
+}
+
+// Returns a map copy with fixed keys.
+func fixKeys(x map[string]interface{}) map[string]interface{} {
+    y := make(map[string]interface{})
+    for key, value := range x {
+            if mapValue, ok := value.(map[string]interface{}); ok {
+                    y[fixKey(key)] = fixKeys(mapValue)
+            } else {
+                    y[fixKey(key)] = value
+            }
+    }
+    return y
+}
 
 // TODO: 1. fix-bad-keys; 2. remove custom marshal above (or keep it?)... ; 3. find good name; 4. clean up code
 func CopyMap(m map[string]interface{}) map[string]interface{} {
