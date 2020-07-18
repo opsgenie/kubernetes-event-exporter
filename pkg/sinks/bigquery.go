@@ -12,6 +12,7 @@ import (
 	"google.golang.org/api/option"
 	"os"
 	"time"
+	"unicode"
 )
 
 // Returns a map filtering out keys that have nil value assigned.
@@ -68,9 +69,9 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 	writer := bufio.NewWriter(file)
 	for i := 0; i < len(items); i++ {
 		event := items[i].(*kube.EnhancedEvent)
-	        var mapStruct map[string]interface{}
-	        json.Unmarshal(event.ToJSON(), &mapStruct)
-	        jsonBytes, _ = json.Marshal(fixKeys(dropNils(mapStruct)))
+		var mapStruct map[string]interface{}
+		json.Unmarshal(event.ToJSON(), &mapStruct)
+		jsonBytes, _ = json.Marshal(fixKeys(dropNils(mapStruct)))
 		fmt.Fprintln(writer, string(jsonBytes))
 	}
 	return writer.Flush()
