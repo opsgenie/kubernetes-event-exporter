@@ -14,6 +14,50 @@ import (
 	"time"
 )
 
+// Returns a map filtering out keys that have nil value assigned.
+func dropNils(x map[string]interface{}) map[string]interface{} {
+	y := make(map[string]interface{})
+	for key, value := range x {
+		if value != nil {
+			if mapValue, ok := value.(map[string]interface{}); ok {
+				y[key] = dropNils(mapValue)
+			} else {
+				y[key] = value
+			}
+		}
+	}
+	return y
+}
+
+// Returns a string representing a fixed key. BigQuery expects keys to be valid identifiers, so if they aren't we modify them.
+func fixKey(key string) string {
+	var fixedKey string
+	if !unicode.IsLetter(rune(key[0])) {
+		fixedKey = "_"
+	}
+	for _, ch := range key {
+		if unicode.IsLetter(ch) || unicode.IsDigit(ch) {
+			fixedKey = fixedKey + string(ch)
+		} else {
+			fixedKey = fixedKey + "_"
+		}
+	}
+	return fixedKey
+}
+
+// Returns a map copy with fixed keys.
+func fixKeys(x map[string]interface{}) map[string]interface{} {
+	y := make(map[string]interface{})
+	for key, value := range x {
+		if mapValue, ok := value.(map[string]interface{}); ok {
+			y[fixKey(key)] = fixKeys(mapValue)
+		} else {
+			y[fixKey(key)] = value
+		}
+	}
+	return y
+}
+
 func writeBatchToJsonFile(items []interface{}, path string) error {
 	file, err := os.Create(path)
 	if err != nil {
@@ -24,7 +68,10 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 	writer := bufio.NewWriter(file)
 	for i := 0; i < len(items); i++ {
 		event := items[i].(*kube.EnhancedEvent)
-		fmt.Fprintln(writer, string(event.ToJSON()))
+	        var mapStruct map[string]interface{}
+	        json.Unmarshal(event.ToJSON(), &mapStruct)
+	        jsonBytes, _ = json.Marshal(fixKeys(dropNils(mapStruct)))
+		fmt.Fprintln(writer, string(jsonBytes))
 	}
 	return writer.Flush()
 }
