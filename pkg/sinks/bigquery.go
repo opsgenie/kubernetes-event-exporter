@@ -3,12 +3,12 @@ package sinks
 import (
 	"bufio"
 	"cloud.google.com/go/bigquery"
-        "google.golang.org/api/option"
 	"context"
 	"fmt"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/batch"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/api/option"
 	"os"
 	"time"
 )
@@ -28,25 +28,25 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 	return writer.Flush()
 }
 
-func createDataset(cfg *BigqueryConfig) () error {
-        ctx := context.Background()
+func (e *Bigquery) createDataset() error {
+	ctx := context.Background()
 
-        client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
-        if err != nil {
-                return fmt.Errorf("bigquery.NewClient: %v", err)
-        }
-        defer client.Close()
+	client, err := bigquery.NewClient(ctx, e.Project, option.WithCredentialsFile(e.CredentialsPath))
+	if err != nil {
+		return fmt.Errorf("bigquery.NewClient: %v", err)
+	}
+	defer client.Close()
 
-        meta := &bigquery.DatasetMetadata{Location: "US"}
-        if err := client.Dataset(cfg.Dataset).Create(ctx, meta); err != nil {
-                return err
-        }
-        return nil
+	meta := &bigquery.DatasetMetadata{Location: "US"}
+	if err := client.Dataset(e.Dataset).Create(ctx, meta); err != nil {
+		return err
+	}
+	return nil
 }
 
-func importJsonFromFile(cfg *BigqueryConfig) (path string) error {
+func (e *Bigquery) importJsonFromFile(path string) error {
 	ctx := context.Background()
-	client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
+	client, err := bigquery.NewClient(ctx, e.Project, option.WithCredentialsFile(e.CredentialsPath))
 	if err != nil {
 		return fmt.Errorf("bigquery.NewClient: %v", err)
 	}
@@ -65,7 +65,7 @@ func importJsonFromFile(cfg *BigqueryConfig) (path string) error {
 	source.SourceFormat = bigquery.JSON
 	source.AutoDetect = true // Allow BigQuery to determine schema.
 
-	loader := client.Dataset(cfg.Dataset).Table(cfg.Table).LoaderFrom(source)
+	loader := client.Dataset(e.Dataset).Table(e.Table).LoaderFrom(source)
 
 	log.Info().Msgf("Bigquery batch uploading %f MBs...", float64(fi.Size())/1e6)
 	job, err := loader.Run(ctx)
@@ -92,7 +92,7 @@ type BigqueryConfig struct {
 	Table   string `yaml:"table"`
 
 	// Path to a JSON file that contains your service account key.
-	CredentialsPath string  `yaml:"credentials_path"`
+	CredentialsPath string `yaml:"credentials_path"`
 
 	// Batching config
 	// TODO(vsbus): set default values
@@ -103,21 +103,28 @@ type BigqueryConfig struct {
 }
 
 func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
-	if cfg.Project = ""
+	if cfg.Project == "" {
 		return nil, "BigqueryConfig.Project must be non-empty"
-	if cfg.Dataset = ""
+	}
+	if cfg.Dataset == "" {
 		return nil, "BigqueryConfig.Dataset must be non-empty"
-	if cfg.Table = ""
+	}
+	if cfg.Table == "" {
 		return nil, "BigqueryConfig.Dataset must be non-empty"
+	}
 
-	if cfg.BatchSize = 0
+	if cfg.BatchSize == 0 {
 		return nil, "BigqueryConfig.BatchSize must be positive"
-	if cfg.MaxRetries = 0
+	}
+	if cfg.MaxRetries == 0 {
 		return nil, "BigqueryConfig.MaxRetries must be positive"
-	if cfg.IntervalSeconds = 0
+	}
+	if cfg.IntervalSeconds == 0 {
 		return nil, "BigqueryConfig.IntervalSeconds must be positive"
-	if cfg.TimeoutSeconds = 0
+	}
+	if cfg.TimeoutSeconds == 0 {
 		return nil, "BigqueryConfig.TimeoutSeconds must be positive"
+	}
 
 	handleBatch := func(ctx context.Context, items []interface{}) []bool {
 		res := make([]bool, len(items))
@@ -138,9 +145,9 @@ func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
 		return res
 	}
 
-        if err := createDataset(cfg.Project, cfg.Dataset); err != nil {
-                log.Error().Msgf("BigQuery create dataset failed: %v", err)
-        }
+	if err := createDataset(cfg.Project, cfg.Dataset); err != nil {
+		log.Error().Msgf("BigQuery create dataset failed: %v", err)
+	}
 
 	batchWriter := batch.NewWriter(
 		batch.WriterConfig{
