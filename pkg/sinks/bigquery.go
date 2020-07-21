@@ -18,12 +18,12 @@ import (
 )
 
 // Returns a map filtering out keys that have nil value assigned.
-func dropNils(x map[string]interface{}) map[string]interface{} {
+func bigQueryDropNils(x map[string]interface{}) map[string]interface{} {
 	y := make(map[string]interface{})
 	for key, value := range x {
 		if value != nil {
 			if mapValue, ok := value.(map[string]interface{}); ok {
-				y[key] = dropNils(mapValue)
+				y[key] = bigQueryDropNils(mapValue)
 			} else {
 				y[key] = value
 			}
@@ -33,7 +33,7 @@ func dropNils(x map[string]interface{}) map[string]interface{} {
 }
 
 // Returns a string representing a fixed key. BigQuery expects keys to be valid identifiers, so if they aren't we modify them.
-func sanitizeKey(key string) string {
+func bigQuerySanitizeKey(key string) string {
 	var fixedKey string
 	if !unicode.IsLetter(rune(key[0])) {
 		fixedKey = "_"
@@ -49,19 +49,19 @@ func sanitizeKey(key string) string {
 }
 
 // Returns a map copy with fixed keys.
-func sanitizeKeys(x map[string]interface{}) map[string]interface{} {
+func bigQuerySanitizeKeys(x map[string]interface{}) map[string]interface{} {
 	y := make(map[string]interface{})
 	for key, value := range x {
 		if mapValue, ok := value.(map[string]interface{}); ok {
-			y[sanitizeKey(key)] = sanitizeKeys(mapValue)
+			y[bigQuerySanitizeKey(key)] = bigQuerySanitizeKeys(mapValue)
 		} else {
-			y[sanitizeKey(key)] = value
+			y[bigQuerySanitizeKey(key)] = value
 		}
 	}
 	return y
 }
 
-func writeBatchToJsonFile(items []interface{}, path string) error {
+func bigQueryWriteBatchToJsonFile(items []interface{}, path string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -73,13 +73,13 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 		event := items[i].(*kube.EnhancedEvent)
 		var mapStruct map[string]interface{}
 		json.Unmarshal(event.ToJSON(), &mapStruct)
-		jsonBytes, _ := json.Marshal(sanitizeKeys(dropNils(mapStruct)))
+		jsonBytes, _ := json.Marshal(bigQuerySanitizeKeys(bigQueryDropNils(mapStruct)))
 		fmt.Fprintln(writer, string(jsonBytes))
 	}
 	return writer.Flush()
 }
 
-func createDataset(cfg *BigQueryConfig) error {
+func bigQueryCreateDataset(cfg *BigQueryConfig) error {
 	ctx := context.Background()
 
 	client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
@@ -95,7 +95,7 @@ func createDataset(cfg *BigQueryConfig) error {
 	return nil
 }
 
-func importJsonFromFile(path string, cfg *BigQueryConfig) error {
+func bigQueryImportJsonFromFile(path string, cfg *BigQueryConfig) error {
 	ctx := context.Background()
 	client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
 	if err != nil {
@@ -188,10 +188,10 @@ func NewBigQuerySink(cfg *BigQueryConfig) (*BigQuerySink, error) {
 			res[i] = true
 		}
 		path := fmt.Sprintf("/tmp/bq_batch-%d-%04x.json", time.Now().UTC().Unix(), rand.Uint64()%65535)
-		if err := writeBatchToJsonFile(items, path); err != nil {
+		if err := bigQueryWriteBatchToJsonFile(items, path); err != nil {
 			log.Error().Msgf("Failed to write JSON file: %v", err)
 		}
-		if err := importJsonFromFile(path, cfg); err != nil {
+		if err := bigQueryImportJsonFromFile(path, cfg); err != nil {
 			log.Error().Msgf("BigQuerySink load failed: %v", err)
 		} else {
 			// The batch file is intentionally not deleted in case of failure allowing to manually uplaod it later and debug issues.
@@ -202,7 +202,7 @@ func NewBigQuerySink(cfg *BigQueryConfig) (*BigQuerySink, error) {
 		return res
 	}
 
-	if err := createDataset(cfg); err != nil {
+	if err := bigQueryCreateDataset(cfg); err != nil {
 		log.Error().Msgf("BigQuerySink create dataset failed: %v", err)
 	}
 
