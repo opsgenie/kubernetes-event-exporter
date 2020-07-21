@@ -11,10 +11,10 @@ import (
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/api/option"
+	"math/rand"
 	"os"
 	"time"
 	"unicode"
-        "math/rand"
 )
 
 // Returns a map filtering out keys that have nil value assigned.
@@ -107,7 +107,7 @@ func importJsonFromFile(path string, cfg *BigQueryConfig) error {
 	if err != nil {
 		return err
 	}
-        defer f.Close()
+	defer f.Close()
 
 	fi, err := f.Stat()
 	if err != nil {
@@ -139,7 +139,7 @@ func importJsonFromFile(path string, cfg *BigQueryConfig) error {
 
 type BigQueryConfig struct {
 	// BigQuery table config
-        Location string `yaml:"location"`
+	Location string `yaml:"location"`
 	Project  string `yaml:"project"`
 	Dataset  string `yaml:"dataset"`
 	Table    string `yaml:"table"`
@@ -156,7 +156,7 @@ type BigQueryConfig struct {
 
 func NewBigQuerySink(cfg *BigQueryConfig) (*BigQuerySink, error) {
 	if cfg.Location == "" {
-                cfg.Location = "US"
+		cfg.Location = "US"
 	}
 	if cfg.Project == "" {
 		return nil, errors.New("bigquery.project config option must be non-empty")
@@ -169,32 +169,32 @@ func NewBigQuerySink(cfg *BigQueryConfig) (*BigQuerySink, error) {
 	}
 
 	if cfg.BatchSize == 0 {
-                cfg.BatchSize = 1000
+		cfg.BatchSize = 1000
 	}
 	if cfg.MaxRetries == 0 {
-                cfg.MaxRetries = 3
+		cfg.MaxRetries = 3
 	}
 	if cfg.IntervalSeconds == 0 {
-                cfg.IntervalSeconds = 10
+		cfg.IntervalSeconds = 10
 	}
 	if cfg.TimeoutSeconds == 0 {
-                cfg.TimeoutSeconds = 60
+		cfg.TimeoutSeconds = 60
 	}
 
-        rand.Seed(time.Now().UTC().UnixNano())
+	rand.Seed(time.Now().UTC().UnixNano())
 	handleBatch := func(ctx context.Context, items []interface{}) []bool {
 		res := make([]bool, len(items))
 		for i := 0; i < len(items); i++ {
 			res[i] = true
 		}
-		path := fmt.Sprintf("/tmp/bq_batch-%d-%04x.json", time.Now().UTC().Unix(), rand.Uint64() % 65535)
+		path := fmt.Sprintf("/tmp/bq_batch-%d-%04x.json", time.Now().UTC().Unix(), rand.Uint64()%65535)
 		if err := writeBatchToJsonFile(items, path); err != nil {
 			log.Error().Msgf("Failed to write JSON file: %v", err)
 		}
 		if err := importJsonFromFile(path, cfg); err != nil {
 			log.Error().Msgf("BigQuerySink load failed: %v", err)
 		} else {
-                        // The batch file is intentionally not deleted in case of failure allowing to manually uplaod it later and debug issues.
+			// The batch file is intentionally not deleted in case of failure allowing to manually uplaod it later and debug issues.
 			if err := os.Remove(path); err != nil {
 				log.Error().Msgf("Failed to delete file %v: %v", path, err)
 			}
