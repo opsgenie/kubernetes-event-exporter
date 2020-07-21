@@ -106,6 +106,8 @@ func importJsonFromFile(path string, cfg *BigQueryConfig) error {
 	if err != nil {
 		return err
 	}
+        defer f.Close()
+
 	fi, err := f.Stat()
 	if err != nil {
 		return err
@@ -178,18 +180,21 @@ func NewBigQuerySink(cfg *BigQueryConfig) (*BigQuerySink, error) {
                 cfg.TimeoutSeconds = 60
 	}
 
+        rand.Seed(time.Now().UTC().UnixNano())
 	handleBatch := func(ctx context.Context, items []interface{}) []bool {
 		res := make([]bool, len(items))
 		for i := 0; i < len(items); i++ {
 			res[i] = true
 		}
-		path := "/tmp/bigquery_batch.json"
+		path := fmt.Sprintf("/tmp/bq_batch_%d_%x.json", time.Now().UTC().Unix(), rand.Uint64())
+                log.Fatal(path)
 		if err := writeBatchToJsonFile(items, path); err != nil {
 			log.Error().Msgf("Failed to write JSON file: %v", err)
 		}
 		if err := importJsonFromFile(path, cfg); err != nil {
 			log.Error().Msgf("BigQuerySink load failed: %v", err)
 		} else {
+                        // The batch file is intentionally not deleted in case of failure allowing to manually uplaod it later and debug issues.
 			if err := os.Remove(path); err != nil {
 				log.Error().Msgf("Failed to delete file %v: %v", path, err)
 			}
