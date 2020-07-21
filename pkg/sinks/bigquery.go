@@ -32,7 +32,7 @@ func dropNils(x map[string]interface{}) map[string]interface{} {
 }
 
 // Returns a string representing a fixed key. BigQuery expects keys to be valid identifiers, so if they aren't we modify them.
-func fixKey(key string) string {
+func sanitizeKey(key string) string {
 	var fixedKey string
 	if !unicode.IsLetter(rune(key[0])) {
 		fixedKey = "_"
@@ -48,13 +48,13 @@ func fixKey(key string) string {
 }
 
 // Returns a map copy with fixed keys.
-func fixKeys(x map[string]interface{}) map[string]interface{} {
+func sanitizeKeys(x map[string]interface{}) map[string]interface{} {
 	y := make(map[string]interface{})
 	for key, value := range x {
 		if mapValue, ok := value.(map[string]interface{}); ok {
-			y[fixKey(key)] = fixKeys(mapValue)
+			y[sanitizeKey(key)] = sanitizeKeys(mapValue)
 		} else {
-			y[fixKey(key)] = value
+			y[sanitizeKey(key)] = value
 		}
 	}
 	return y
@@ -72,7 +72,7 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 		event := items[i].(*kube.EnhancedEvent)
 		var mapStruct map[string]interface{}
 		json.Unmarshal(event.ToJSON(), &mapStruct)
-		jsonBytes, _ := json.Marshal(fixKeys(dropNils(mapStruct)))
+		jsonBytes, _ := json.Marshal(sanitizeKeys(dropNils(mapStruct)))
 		fmt.Fprintln(writer, string(jsonBytes))
 	}
 	return writer.Flush()
