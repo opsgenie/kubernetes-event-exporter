@@ -151,7 +151,7 @@ type BigQueryConfig struct {
 	TimeoutSeconds  int `yaml:"timeout_seconds"`
 }
 
-func NewBigQuery(cfg *BigQueryConfig) (*BigQuery, error) {
+func NewBigQuerySink(cfg *BigQueryConfig) (*BigQuerySink, error) {
 	if cfg.Location == "" {
                 cfg.Location = "US"
 	}
@@ -188,7 +188,7 @@ func NewBigQuery(cfg *BigQueryConfig) (*BigQuery, error) {
 			log.Error().Msgf("Failed to write JSON file: %v", err)
 		}
 		if err := importJsonFromFile(path, cfg); err != nil {
-			log.Error().Msgf("BigQuery load failed: %v", err)
+			log.Error().Msgf("BigQuerySink load failed: %v", err)
 		} else {
 			if err := os.Remove(path); err != nil {
 				log.Error().Msgf("Failed to delete file %v: %v", path, err)
@@ -198,7 +198,7 @@ func NewBigQuery(cfg *BigQueryConfig) (*BigQuery, error) {
 	}
 
 	if err := createDataset(cfg); err != nil {
-		log.Error().Msgf("BigQuery create dataset failed: %v", err)
+		log.Error().Msgf("BigQuerySink create dataset failed: %v", err)
 	}
 
 	batchWriter := batch.NewWriter(
@@ -212,18 +212,18 @@ func NewBigQuery(cfg *BigQueryConfig) (*BigQuery, error) {
 	)
 	batchWriter.Start()
 
-	return &BigQuery{batchWriter: batchWriter}, nil
+	return &BigQuerySink{batchWriter: batchWriter}, nil
 }
 
-type BigQuery struct {
+type BigQuerySink struct {
 	batchWriter *batch.Writer
 }
 
-func (e *BigQuery) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
+func (e *BigQuerySink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	e.batchWriter.Submit(ev)
 	return nil
 }
 
-func (e *BigQuery) Close() {
+func (e *BigQuerySink) Close() {
 	// No-op
 }

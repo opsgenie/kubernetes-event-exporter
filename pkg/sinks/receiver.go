@@ -84,7 +84,7 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 	}
 
 	if r.BigQuery != nil {
-		return NewBigQuery(r.BigQuery)
+		return NewBigQuerySink(r.BigQuery)
 	}
 
 	return nil, errors.New("unknown sink")
