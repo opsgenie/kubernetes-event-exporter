@@ -230,5 +230,5 @@ func (e *BigQuerySink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 }
 
 func (e *BigQuerySink) Close() {
-	// No-op
+	e.batchWriter.Stop()
 }
