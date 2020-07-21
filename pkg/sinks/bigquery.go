@@ -78,7 +78,7 @@ func writeBatchToJsonFile(items []interface{}, path string) error {
 	return writer.Flush()
 }
 
-func createDataset(cfg *BigqueryConfig) error {
+func createDataset(cfg *BigQueryConfig) error {
 	ctx := context.Background()
 
 	client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
@@ -87,14 +87,14 @@ func createDataset(cfg *BigqueryConfig) error {
 	}
 	defer client.Close()
 
-	meta := &bigquery.DatasetMetadata{Location: "US"}
+	meta := &bigquery.DatasetMetadata{Location: cfg.Location}
 	if err := client.Dataset(cfg.Dataset).Create(ctx, meta); err != nil {
 		return err
 	}
 	return nil
 }
 
-func importJsonFromFile(path string, cfg *BigqueryConfig) error {
+func importJsonFromFile(path string, cfg *BigQueryConfig) error {
 	ctx := context.Background()
 	client, err := bigquery.NewClient(ctx, cfg.Project, option.WithCredentialsFile(cfg.CredentialsPath))
 	if err != nil {
@@ -118,7 +118,7 @@ func importJsonFromFile(path string, cfg *BigqueryConfig) error {
 	loader := client.Dataset(cfg.Dataset).Table(cfg.Table).LoaderFrom(source)
 	loader.SchemaUpdateOptions = []string{"ALLOW_FIELD_ADDITION"}
 
-	log.Info().Msgf("Bigquery batch uploading %f MBs...", float64(fi.Size())/1e6)
+	log.Info().Msgf("BigQuery batch uploading %f MBs...", float64(fi.Size())/1e6)
 	job, err := loader.Run(ctx)
 	if err != nil {
 		return err
@@ -127,18 +127,19 @@ func importJsonFromFile(path string, cfg *BigqueryConfig) error {
 	if err != nil {
 		return err
 	}
-	log.Info().Msgf("Bigquery batch uploading done.")
+	log.Info().Msgf("BigQuery batch uploading done.")
 	if err := status.Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-type BigqueryConfig struct {
+type BigQueryConfig struct {
 	// BigQuery table config
-	Project string `yaml:"project"`
-	Dataset string `yaml:"dataset"`
-	Table   string `yaml:"table"`
+        Location string `yaml:"location"`
+	Project  string `yaml:"project"`
+	Dataset  string `yaml:"dataset"`
+	Table    string `yaml:"table"`
 
 	// Path to a JSON file that contains your service account key.
 	CredentialsPath string `yaml:"credentials_path"`
@@ -150,7 +151,10 @@ type BigqueryConfig struct {
 	TimeoutSeconds  int `yaml:"timeout_seconds"`
 }
 
-func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
+func NewBigQuery(cfg *BigQueryConfig) (*BigQuery, error) {
+	if cfg.Location == "" {
+                cfg.Location = "US"
+	}
 	if cfg.Project == "" {
 		return nil, errors.New("bigquery.project config option must be non-empty")
 	}
@@ -162,16 +166,16 @@ func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
 	}
 
 	if cfg.BatchSize == 0 {
-		return nil, errors.New("bigquery.batch_size config option must be positive")
+                cfg.BatchSize = 1000
 	}
 	if cfg.MaxRetries == 0 {
-		return nil, errors.New("bigquery.max_retries config option must be positive")
+                cfg.MaxRetries = 3
 	}
 	if cfg.IntervalSeconds == 0 {
-		return nil, errors.New("bigquery.interval_seconds config option must be positive")
+                cfg.IntervalSeconds = 10
 	}
 	if cfg.TimeoutSeconds == 0 {
-		return nil, errors.New("bigquery.timeout_seconds config option must be positive")
+                cfg.TimeoutSeconds = 60
 	}
 
 	handleBatch := func(ctx context.Context, items []interface{}) []bool {
@@ -208,18 +212,18 @@ func NewBigquery(cfg *BigqueryConfig) (*Bigquery, error) {
 	)
 	batchWriter.Start()
 
-	return &Bigquery{batchWriter: batchWriter}, nil
+	return &BigQuery{batchWriter: batchWriter}, nil
 }
 
-type Bigquery struct {
+type BigQuery struct {
 	batchWriter *batch.Writer
 }
 
-func (e *Bigquery) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
+func (e *BigQuery) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	e.batchWriter.Submit(ev)
 	return nil
 }
 
-func (e *Bigquery) Close() {
+func (e *BigQuery) Close() {
 	// No-op
 }
