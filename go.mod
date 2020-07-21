@@ -3,8 +3,8 @@ module github.com/opsgenie/kubernetes-event-exporter
 go 1.14
 
 require (
-	cloud.google.com/go v0.60.0
-	cloud.google.com/go/bigquery v1.9.0 // indirect
+	cloud.google.com/go/bigquery v1.9.0
+	cloud.google.com/go/pubsub v1.3.1
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -28,6 +28,7 @@ require (
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf // indirect
+	google.golang.org/api v0.28.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
