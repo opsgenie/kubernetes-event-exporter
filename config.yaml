@@ -1,11 +1,41 @@
-logLevel: error
-logFormat: json
+logLevel: info
+
+#logFormat: json
+
 # namespace: tekton-pipelines
+
 route:
+
   routes:
+
     - match:
+
         - receiver: "dump"
+
 receivers:
+
   - name: "dump"
-    file:
-      path: "/dev/stdout"
+
+    bigquery:
+
+      interval_seconds: 10
+
+      timeout_seconds: 60
+
+      batch_size: 1000
+
+      max_retries: 3
+
+      project: "pdx-dev-72964def"
+
+      dataset: "av_viktor"
+
+      table: "k8s_test_03"
+
+      credentials_path: "/tmp/bq_pdx_dev.json"
+
+    #file:
+
+    #  path: "/dev/stdout"
+
+

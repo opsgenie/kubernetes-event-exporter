@@ -14,6 +14,7 @@ import (
 	"os"
 	"time"
 	"unicode"
+        "math/rand"
 )
 
 // Returns a map filtering out keys that have nil value assigned.
@@ -120,7 +121,7 @@ func importJsonFromFile(path string, cfg *BigQueryConfig) error {
 	loader := client.Dataset(cfg.Dataset).Table(cfg.Table).LoaderFrom(source)
 	loader.SchemaUpdateOptions = []string{"ALLOW_FIELD_ADDITION"}
 
-	log.Info().Msgf("BigQuery batch uploading %f MBs...", float64(fi.Size())/1e6)
+	log.Info().Msgf("BigQuery batch uploading %.3f KBs...", float64(fi.Size())/1e3)
 	job, err := loader.Run(ctx)
 	if err != nil {
 		return err
@@ -186,8 +187,7 @@ func NewBigQuerySink(cfg *BigQueryConfig) (*BigQuerySink, error) {
 		for i := 0; i < len(items); i++ {
 			res[i] = true
 		}
-		path := fmt.Sprintf("/tmp/bq_batch_%d_%x.json", time.Now().UTC().Unix(), rand.Uint64())
-                log.Fatal(path)
+		path := fmt.Sprintf("/tmp/bq_batch-%d-%04x.json", time.Now().UTC().Unix(), rand.Uint64() % 65535)
 		if err := writeBatchToJsonFile(items, path); err != nil {
 			log.Error().Msgf("Failed to write JSON file: %v", err)
 		}
