@@ -48,7 +48,9 @@ func NewOpsgenieSink(config *OpsgenieConfig) (Sink, error) {
 }
 
 func (o *OpsgenieSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
-	request := alert.CreateAlertRequest{}
+	request := alert.CreateAlertRequest{
+		Priority: alert.Priority(o.cfg.Priority),
+	}
 
 	msg, err := GetString(ev, o.cfg.Message)
 	if err != nil {
