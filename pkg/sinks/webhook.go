@@ -53,8 +53,8 @@ func (w *Webhook) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 		return err
 	}
 
-	if resp.StatusCode >= 200 && resp.StatusCode < 300{
-		return errors.New("not 200/201: " + string(body))
+	if resp.StatusCode < 200 && resp.StatusCode < 300{
+		return errors.New("not 2xx, response : " + string(body))
 	}
 
 	return nil
