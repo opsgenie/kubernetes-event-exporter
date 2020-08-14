@@ -62,7 +62,7 @@ func (r *Rule) MatchesEvent(ev *kube.EnhancedEvent) bool {
 			if val, ok := ev.InvolvedObject.Labels[k]; !ok {
 				return false
 			} else {
-				matches := matchString(val, v)
+				matches := matchString(v, val)
 				if !matches {
 					return false
 				}
