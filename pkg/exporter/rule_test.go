@@ -52,6 +52,21 @@ func TestBasicRegexRule(t *testing.T) {
 	assert.False(t, r.MatchesEvent(ev3))
 }
 
+func TestLabelRegexRule(t *testing.T) {
+	ev := &kube.EnhancedEvent{}
+	ev.InvolvedObject.Labels = map[string]string{
+		"version": "alpha-123",
+	}
+
+	r := Rule{
+		Labels: map[string]string{
+			"version": "alpha",
+		},
+	}
+
+	assert.True(t, r.MatchesEvent(ev))
+}
+
 func TestOneLabelMatchesRule(t *testing.T) {
 	ev := &kube.EnhancedEvent{}
 	ev.InvolvedObject.Labels = map[string]string{
