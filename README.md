@@ -320,6 +320,25 @@ receivers:
       layout: # Optional
 ```
 
+# BigQuery
+
+Google's query thing
+
+```yaml
+receivers:
+  - name: "my-big-query"
+    bigquery:
+        location:
+        project:
+        dataset:
+        table:
+        credentials_path:
+        batch_size:
+        max_retries:
+        interval_seconds:
+        timeout_seconds:
+```
+
 ### Planned Receivers
 
 - Big Query
