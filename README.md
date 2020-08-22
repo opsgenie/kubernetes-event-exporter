@@ -114,6 +114,8 @@ receivers:
       apiKey: # optional
       # If set to true, it allows updating the same document in ES (might be useful handling count)
       useEventID: true|false
+      # Type should be only used for clusters Version 6 and lower.
+      # type: kube-event
       layout: # Optional
       tls: # optional, advanced options for tls
         insecureSkipVerify: true|false # optional, if set to true, the tls cert won't be verified

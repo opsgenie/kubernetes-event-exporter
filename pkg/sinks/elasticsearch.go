@@ -26,6 +26,7 @@ type ElasticsearchConfig struct {
 	UseEventID  bool   `yaml:"useEventID"`
 	Index       string `yaml:"index"`
 	IndexFormat string `yaml:"indexFormat"`
+	Type        string `yaml:"type"`
 	TLS         struct {
 		InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
 		ServerName         string `yaml:"serverName"`
@@ -124,6 +125,11 @@ func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error 
 	req := esapi.IndexRequest{
 		Body:  bytes.NewBuffer(toSend),
 		Index: index,
+	}
+
+	// This should not be used for clusters with ES8.0+.
+	if len(e.cfg.Type) > 0 {
+		req.DocumentType = e.cfg.Type
 	}
 
 	if e.cfg.UseEventID {
