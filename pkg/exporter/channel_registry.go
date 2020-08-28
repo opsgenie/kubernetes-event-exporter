@@ -53,11 +53,13 @@ func (r *ChannelBasedReceiverRegistry) Register(name string, receiver sinks.Sink
 		for {
 			select {
 			case ev := <-ch:
-				log.Debug().Str("sink", name).Str("event", ev.Message).Msg("sending event to sink")
-				err := receiver.Send(context.Background(), &ev)
-				if err != nil {
-					log.Debug().Err(err).Str("sink", name).Str("event", ev.Message).Msg("Cannot send event")
-				}
+				go func() {
+					log.Debug().Str("sink", name).Str("event", ev.Message).Msg("sending event to sink")
+					err := receiver.Send(context.Background(), &ev)
+					if err != nil {
+						log.Debug().Err(err).Str("sink", name).Str("event", ev.Message).Msg("Cannot send event")
+					}
+				}()
 			case <-exitCh:
 				log.Info().Str("sink", name).Msg("Closing the sink")
 				break Loop
