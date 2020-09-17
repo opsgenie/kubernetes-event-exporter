@@ -2,6 +2,7 @@ package sinks
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
@@ -14,7 +15,7 @@ const retries = 3
 
 type EventBridgeConfig struct {
 	DetailType   string              `yaml:"detailTyp"`
-	Details   map[string]string `yaml:"details"`
+	Details   map[string]interface{} `yaml:"details"`
 	Source 	  string				`yaml:"source"`
 	EventBusName string			`yaml:"eventBusName"`
 	Region string				`yaml:"region"`
@@ -42,7 +43,29 @@ func NewEventBridgeSink(cfg *EventBridgeConfig) (Sink, error) {
 
 func (s *EventBridgeSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	log.Println("[INFO] Sending event to EventBridge ")
-	req,out := s.svc.PutEventsRequest(nil)
+	var toSend string
+	if s.cfg.Details != nil {
+		res, err := convertLayoutTemplate(s.cfg.Details, ev)
+		if err != nil {
+			return err
+		}
+
+		byte, err := json.Marshal(res)
+		toSend = string(byte)
+		if err != nil {
+			return err
+		}
+	} else {
+		toSend = string(ev.ToJSON())
+	}
+	inputRequest := eventbridge.PutEventsRequestEntry{
+		Detail: &toSend,
+		DetailType:,
+		Time: ,
+		Source: ,
+		EventBusName: ,
+	}
+	req,out := s.svc.PutEventsRequest(&eventbridge.PutEventsInput{Entries: []*eventbridge.PutEventsRequestEntry{&inputRequest}})
 	err := req.Send()
 	var retry int64
 	retry = 0
