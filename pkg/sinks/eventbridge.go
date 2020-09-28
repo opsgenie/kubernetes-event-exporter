@@ -4,14 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"log"
 	"time"
 )
-
-const retries = 3
 
 type EventBridgeConfig struct {
 	DetailType   string              `yaml:"detailTyp"`
@@ -28,7 +27,15 @@ type EventBridgeSink struct {
 
 func NewEventBridgeSink(cfg *EventBridgeConfig) (Sink, error) {
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(cfg.Region)},
+		Region: aws.String(cfg.Region),
+		Retryer: client.DefaultRetryer{
+				NumMaxRetries:    client.DefaultRetryerMaxNumRetries,
+				MinRetryDelay:    client.DefaultRetryerMinRetryDelay,
+				MinThrottleDelay: client.DefaultRetryerMinThrottleDelay,
+				MaxRetryDelay:     client.DefaultRetryerMaxRetryDelay,
+				MaxThrottleDelay: client.DefaultRetryerMaxThrottleDelay,
+		},
+		},
 	)
 	if err != nil {
 		return nil, err
@@ -58,23 +65,16 @@ func (s *EventBridgeSink) Send(ctx context.Context, ev *kube.EnhancedEvent) erro
 	} else {
 		toSend = string(ev.ToJSON())
 	}
+	tym := time.Now()
 	inputRequest := eventbridge.PutEventsRequestEntry{
 		Detail: &toSend,
-		DetailType:,
-		Time: ,
-		Source: ,
-		EventBusName: ,
+		DetailType: &s.cfg.DetailType,
+		Time: &tym,
+		Source: &s.cfg.Source,
+		EventBusName: &s.cfg.EventBusName,
 	}
 	req,out := s.svc.PutEventsRequest(&eventbridge.PutEventsInput{Entries: []*eventbridge.PutEventsRequestEntry{&inputRequest}})
 	err := req.Send()
-	var retry int64
-	retry = 0
-	for err!=nil && retry<=retries {
-		log.Printf("[WARN] err = %v \n, Retrying SendEvents to EventBridge \n", err)
-		time.Sleep(time.Second * time.Duration(retry+1))
-		retry = retry + 1
-		err = req.Send()
-	}
 	if err!=nil{
 		log.Printf("[ERROR] Failed to send event. Err = %v \n", err)
 		log.Printf("[ERROR] Event = %v \n", out)

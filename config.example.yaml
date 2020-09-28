@@ -86,3 +86,14 @@ receivers:
       gcloud_project_id: "my-project"
       topic: "kube-event"
       create_topic: False
+  - name: "eventbridge"
+    eventbridge:
+      detailTyp: "deployment"
+      source: "cd"
+      eventBusName: "default"
+      region: "ap-southeast-1"
+      details:
+        message: "{{ .Message }}"
+        namespace: "{{ .Namespace }}"
+        reason: "{{ .Reason }}"
+        object: "{{ .Namespace }}"

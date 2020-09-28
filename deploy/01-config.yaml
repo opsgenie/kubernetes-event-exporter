@@ -4,14 +4,25 @@ metadata:
   name: event-exporter-cfg
   namespace: monitoring
 data:
-  config.yaml: |
+  config.yaml: |-
     logLevel: error
     logFormat: json
     route:
       routes:
         - match:
-            - receiver: "dump"
+            - receiver: "k8s"
     receivers:
       - name: "dump"
         file:
           path: "/dev/stdout"
+      - name: "k8s"
+        eventbridge:
+          detailTyp: "rock-events"
+          source: "rock"
+          eventBusName: "default"
+          region: "ap-southeast-1"
+          details:
+            message: "{{ .Message }}"
+            namespace: "{{ .Namespace }}"
+            reason: "{{ .Reason }}"
+            object: "{{ .Namespace }}"
