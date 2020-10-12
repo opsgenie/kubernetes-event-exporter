@@ -3,12 +3,13 @@ package sinks
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
-	"log"
+	"github.com/rs/zerolog/log"
 	"time"
 )
 
@@ -73,11 +74,12 @@ func (s *EventBridgeSink) Send(ctx context.Context, ev *kube.EnhancedEvent) erro
 		Source: &s.cfg.Source,
 		EventBusName: &s.cfg.EventBusName,
 	}
+	log.Info().Str("InputEvent", inputRequest.String()).Msg("Request")
 	req,out := s.svc.PutEventsRequest(&eventbridge.PutEventsInput{Entries: []*eventbridge.PutEventsRequestEntry{&inputRequest}})
 	err := req.Send()
 	if err!=nil{
-		log.Printf("[ERROR] Failed to send event. Err = %v \n", err)
-		log.Printf("[ERROR] Event = %v \n", out)
+		log.Error().Str("Failed to send event. Err=", err.Error()).Msg("EventBridge Error")
+		log.Error().Str("Failed to send event. Aws out=", out.String()).Msg("EventBridge output")
 		return err
 	}
 	return nil
