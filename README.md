@@ -215,8 +215,7 @@ route:
         - receiver: "dump"
 receivers:
   - name: "dump"
-    file:
-      path: "/dev/stdout"
+    stdout: {}
 ```
 
 ### Kafka
