@@ -3,7 +3,6 @@ package sinks
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -50,7 +49,7 @@ func NewEventBridgeSink(cfg *EventBridgeConfig) (Sink, error) {
 }
 
 func (s *EventBridgeSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
-	log.Println("[INFO] Sending event to EventBridge ")
+	log.Info().Msg("Sending event to EventBridge ")
 	var toSend string
 	if s.cfg.Details != nil {
 		res, err := convertLayoutTemplate(s.cfg.Details, ev)
