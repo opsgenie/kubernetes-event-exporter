@@ -139,6 +139,10 @@ receivers:
       token: YOUR-API-TOKEN-HERE
       channel: "@{{ .InvolvedObject.Labels.owner }}"
       message: "{{ .Message }}"
+      color: # optional
+      title: # optional
+      author_name: # optional
+      footer: # optional
       fields:
         namespace: "{{ .Namespace }}"
         reason: "{{ .Reason }}"
