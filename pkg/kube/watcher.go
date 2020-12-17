@@ -52,7 +52,7 @@ func (e *EventWatcher) OnUpdate(oldObj, newObj interface{}) {
 func (e *EventWatcher) onEvent(event *corev1.Event) {
 	// TODO: Re-enable this after development
 	// It's probably an old event we are catching, it's not the best way but anyways
-	if time.Since(event.LastTimestamp.Time) > time.Second*5 {
+	if time.Since(event.LastTimestamp.Time) > time.Second*60 {
 		return
 	}
 
