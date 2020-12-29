@@ -204,7 +204,9 @@ receivers:
 
 ### Stdout
 
-Standard out is also another file in Linux. You can use the following configuration as an examplee:
+Standard out is also another file in Linux. `logLevel` refers to the application logging severity - available levels 
+`trace`, `debug`, `info`, `warn`, `error`, `fatal` and `panic`. When not specified, default level is set to `info`.
+You can use the following configuration as an example.
 
 ```yaml
 logLevel: error
