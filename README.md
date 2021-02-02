@@ -34,7 +34,7 @@ route:
       - receiver: "critical-events-queue"
     # This a final route for user messages
     - match:
-        kind: "Pod|Deployment|ReplicaSet"
+      - kind: "Pod|Deployment|ReplicaSet"
         labels:
           version: "dev"
         receiver: "slack"
