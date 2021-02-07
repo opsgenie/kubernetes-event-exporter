@@ -339,10 +339,20 @@ receivers:
         timeout_seconds:
 ```
 
+# Udp
+
+It could be used to send json logs to logstash
+```yaml
+receivers:
+  - name: "my-udp"
+    udp:
+      host:
+```
+
+
 ### Planned Receivers
 
-- Big Query
 - AWS Firehose
 - Splunk
 - Redis
-- Logstash
+- Logstash(Upd Receiver?)
