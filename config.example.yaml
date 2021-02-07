@@ -7,6 +7,7 @@ route:
     # This route allows dumping all events because it has no fields to match and no drop rules.
     - match:
         - receiver: "dump"
+        - receiver: "syslog"
     # This starts another route, drops all the events in *test* namespaces and Normal events 
     # for capturing critical events 
     - drop:
@@ -27,6 +28,9 @@ receivers:
       hosts:
         - "http://localhost:9200"
       indexFormat: "kube-events-{2006-01-02}"
+  - name: "syslog"
+      udp:
+        host: "localhost:514"
   - name: "alert"
     opsgenie:
       apiKey: ""
