@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
@@ -31,6 +32,8 @@ type ElasticsearchConfig struct {
 		InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
 		ServerName         string `yaml:"serverName"`
 		CaFile             string `yaml:"caFile"`
+		KeyFile            string `yaml:"keyFile"`
+		CertFile           string `yaml:"certFile"`
 	} `yaml:"tls"`
 	Layout map[string]interface{} `yaml:"layout"`
 }
@@ -51,6 +54,12 @@ func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
 		ServerName:         cfg.TLS.ServerName,
 	}
 	tlsClientConfig.RootCAs.AppendCertsFromPEM(caCert)
+
+	cert, err := tls.LoadX509KeyPair(cfg.TLS.CertFile, cfg.TLS.KeyFile)
+	if err != nil {
+		return nil, fmt.Errorf("could not read client certificate or key: %w", err)
+	}
+	tlsClientConfig.Certificates = append(tlsClientConfig.Certificates, cert)
 
 	client, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: cfg.Hosts,
