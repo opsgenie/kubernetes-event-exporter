@@ -23,7 +23,9 @@ type ElasticsearchConfig struct {
 	CloudID  string   `yaml:"cloudID"`
 	APIKey   string   `yaml:"apiKey"`
 	// Indexing preferences
-	UseEventID  bool   `yaml:"useEventID"`
+	UseEventID bool `yaml:"useEventID"`
+	// DeDot all labels and annotations in the event. For both the event and the involvedObject
+	DeDot       bool   `yaml:"deDot"`
 	Index       string `yaml:"index"`
 	IndexFormat string `yaml:"indexFormat"`
 	Type        string `yaml:"type"`
@@ -100,6 +102,10 @@ func formatIndexName(pattern string, when time.Time) string {
 func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	var toSend []byte
 
+	if e.cfg.DeDot {
+		de := ev.DeDot()
+		ev = &de
+	}
 	if e.cfg.Layout != nil {
 		res, err := convertLayoutTemplate(e.cfg.Layout, ev)
 		if err != nil {
