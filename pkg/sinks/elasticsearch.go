@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"github.com/elastic/go-elasticsearch/v7"
@@ -53,6 +54,8 @@ func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
 		InsecureSkipVerify: cfg.TLS.InsecureSkipVerify,
 		ServerName:         cfg.TLS.ServerName,
 	}
+
+	tlsClientConfig.RootCAs = x509.NewCertPool()
 	tlsClientConfig.RootCAs.AppendCertsFromPEM(caCert)
 
 	cert, err := tls.LoadX509KeyPair(cfg.TLS.CertFile, cfg.TLS.KeyFile)
