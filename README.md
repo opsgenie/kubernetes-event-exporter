@@ -338,7 +338,16 @@ receivers:
         interval_seconds:
         timeout_seconds:
 ```
+# Pipe
 
+pipe output directly into some file descriptor
+
+```yaml
+receivers:
+  - name: "my_pipe"
+    pipe:
+      path: "/dev/stdout"
+```
 ### Planned Receivers
 
 - Big Query

@@ -35,6 +35,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 	}
 
 	// Sorry for this code, but its Go
+	if r.Pipe != nil {
+		return NewPipeSink(r.Pipe)
+	}
+
 	if r.Webhook != nil {
 		return NewWebhook(r.Webhook)
 	}
