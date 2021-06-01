@@ -19,6 +19,7 @@ type ReceiverConfig struct {
 	Opscenter     *OpsCenterConfig     `yaml:"opscenter"`
 	Teams         *TeamsConfig         `yaml:"teams"`
 	BigQuery      *BigQueryConfig      `yaml:"bigquery"`
+	Pipe          *PipeConfig          `yaml:"pipe"`
 }
 
 func (r *ReceiverConfig) Validate() error {
