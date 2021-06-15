@@ -2,9 +2,10 @@ package sinks
 
 import (
 	"context"
-	"github.com/nlopes/slack"
+
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog/log"
+	"github.com/slack-go/slack"
 )
 
 type SlackConfig struct {
