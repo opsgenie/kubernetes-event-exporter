@@ -1,5 +1,4 @@
 # cloud.google.com/go v0.60.0
-## explicit
 cloud.google.com/go
 cloud.google.com/go/civil
 cloud.google.com/go/compute/metadata
@@ -117,8 +116,6 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/google/gofuzz
 # github.com/google/uuid v1.0.0
 github.com/google/uuid
-# github.com/googleapis/gax-go v2.0.2+incompatible
-## explicit
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
 # github.com/googleapis/gnostic v0.3.1
@@ -126,8 +123,7 @@ github.com/googleapis/gax-go/v2
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
-# github.com/gorilla/websocket v1.4.1
-## explicit
+# github.com/gorilla/websocket v1.4.2
 github.com/gorilla/websocket
 # github.com/hashicorp/go-cleanhttp v0.5.0
 github.com/hashicorp/go-cleanhttp
@@ -176,12 +172,6 @@ github.com/mitchellh/reflectwalk
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 github.com/modern-go/reflect2
-# github.com/nlopes/slack v0.6.0
-## explicit
-github.com/nlopes/slack
-github.com/nlopes/slack/internal/errorsx
-github.com/nlopes/slack/internal/timex
-github.com/nlopes/slack/slackutilsx
 # github.com/opsgenie/opsgenie-go-sdk-v2 v1.0.3
 ## explicit
 github.com/opsgenie/opsgenie-go-sdk-v2/alert
@@ -203,11 +193,17 @@ github.com/rs/zerolog/internal/json
 github.com/rs/zerolog/log
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
+# github.com/slack-go/slack v0.9.1
+## explicit
+github.com/slack-go/slack
+github.com/slack-go/slack/internal/backoff
+github.com/slack-go/slack/internal/errorsx
+github.com/slack-go/slack/internal/misc
+github.com/slack-go/slack/internal/timex
+github.com/slack-go/slack/slackutilsx
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
-# github.com/stretchr/objx v0.2.0
-## explicit
 # github.com/stretchr/testify v1.5.1
 ## explicit
 github.com/stretchr/testify/assert
