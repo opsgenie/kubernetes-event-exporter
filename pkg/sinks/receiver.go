@@ -19,6 +19,7 @@ type ReceiverConfig struct {
 	Opscenter     *OpsCenterConfig     `yaml:"opscenter"`
 	Teams         *TeamsConfig         `yaml:"teams"`
 	BigQuery      *BigQueryConfig      `yaml:"bigquery"`
+	Pipe          *PipeConfig          `yaml:"pipe"`
 }
 
 func (r *ReceiverConfig) Validate() error {
@@ -35,6 +36,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 	}
 
 	// Sorry for this code, but its Go
+	if r.Pipe != nil {
+		return NewPipeSink(r.Pipe)
+	}
+
 	if r.Webhook != nil {
 		return NewWebhook(r.Webhook)
 	}
