@@ -116,6 +116,8 @@ receivers:
       useEventID: true|false
       # Type should be only used for clusters Version 6 and lower.
       # type: kube-event
+      # If set to true, all dots in labels and annotation keys are replaced by underscores. Defaults false
+      deDot: true|false
       layout: # Optional
       tls: # optional, advanced options for tls
         insecureSkipVerify: true|false # optional, if set to true, the tls cert won't be verified
