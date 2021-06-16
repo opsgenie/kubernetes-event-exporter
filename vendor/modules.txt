@@ -1,5 +1,4 @@
 # cloud.google.com/go v0.60.0
-## explicit
 cloud.google.com/go
 cloud.google.com/go/civil
 cloud.google.com/go/compute/metadata
@@ -67,6 +66,7 @@ github.com/aws/aws-sdk-go/private/protocol/query
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/rest
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
+github.com/aws/aws-sdk-go/service/eventbridge
 github.com/aws/aws-sdk-go/service/kinesis
 github.com/aws/aws-sdk-go/service/sns
 github.com/aws/aws-sdk-go/service/sqs
@@ -116,8 +116,6 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/google/gofuzz
 # github.com/google/uuid v1.0.0
 github.com/google/uuid
-# github.com/googleapis/gax-go v2.0.2+incompatible
-## explicit
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
 # github.com/googleapis/gnostic v0.3.1
@@ -205,8 +203,6 @@ github.com/sirupsen/logrus
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
-# github.com/stretchr/objx v0.2.0
-## explicit
 # github.com/stretchr/testify v1.5.1
 ## explicit
 github.com/stretchr/testify/assert
