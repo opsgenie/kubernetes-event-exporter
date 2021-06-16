@@ -1,4 +1,5 @@
 # cloud.google.com/go v0.60.0
+## explicit
 cloud.google.com/go
 cloud.google.com/go/civil
 cloud.google.com/go/compute/metadata
