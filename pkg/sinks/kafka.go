@@ -18,10 +18,11 @@ type KafkaConfig struct {
 	Brokers []string               `yaml:"brokers"`
 	Layout  map[string]interface{} `yaml:"layout"`
 	TLS     struct {
-		Enable   bool   `yaml:"enable"`
-		CaFile   string `yaml:"caFile"`
-		CertFile string `yaml:"certFile"`
-		KeyFile  string `yaml:"keyFile"`
+		Enable             bool   `yaml:"enable"`
+		CaFile             string `yaml:"caFile"`
+		CertFile           string `yaml:"certFile"`
+		KeyFile            string `yaml:"keyFile"`
+		InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
 	} `yaml:"tls"`
 }
 
@@ -108,8 +109,9 @@ func createSaramaProducer(cfg *KafkaConfig) (sarama.SyncProducer, error) {
 
 		saramaConfig.Net.TLS.Enable = true
 		saramaConfig.Net.TLS.Config = &tls.Config{
-			Certificates: []tls.Certificate{cert},
-			RootCAs:      caCertPool,
+			Certificates:       []tls.Certificate{cert},
+			RootCAs:            caCertPool,
+			InsecureSkipVerify: cfg.TLS.InsecureSkipVerify,
 		}
 	}
 
