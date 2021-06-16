@@ -1,9 +1,9 @@
 module github.com/opsgenie/kubernetes-event-exporter
 
-go 1.14
+go 1.16
 
 require (
-       cloud.google.com/go v0.60.0 // indirect
+    cloud.google.com/go v0.60.0 // indirect
 	cloud.google.com/go/bigquery v1.9.0
 	cloud.google.com/go/pubsub v1.3.1
 	github.com/Masterminds/goutils v1.1.0 // indirect
