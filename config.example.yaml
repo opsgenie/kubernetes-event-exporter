@@ -86,3 +86,8 @@ receivers:
       gcloud_project_id: "my-project"
       topic: "kube-event"
       create_topic: False
+  - name: "syslog"
+    syslog:
+      network: "tcp"
+      address: "127.0.0.1:11514"
+      tag: "k8s.event"

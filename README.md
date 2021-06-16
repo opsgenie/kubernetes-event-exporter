@@ -322,6 +322,22 @@ receivers:
       layout: # Optional
 ```
 
+### Syslog
+
+Syslog sink support enables to write k8s-events to syslog daemon server over tcp/udp. This can also be consumed by
+ rsyslog. 
+
+```yaml
+# ...
+receivers:
+  - name: "syslog"
+    syslog:
+      network: "tcp"
+      address: "127.0.0.1:11514"
+      tag: "k8s.event"
+
+```
+
 # BigQuery
 
 Google's query thing
