@@ -9,6 +9,7 @@ type ReceiverConfig struct {
 	Webhook       *WebhookConfig       `yaml:"webhook"`
 	File          *FileConfig          `yaml:"file"`
 	Syslog        *SyslogConfig        `yaml:"syslog"`
+	Stdout        *StdoutConfig        `yaml:"stdout"`
 	Elasticsearch *ElasticsearchConfig `yaml:"elasticsearch"`
 	Kinesis       *KinesisConfig       `yaml:"kinesis"`
 	Opsgenie      *OpsgenieConfig      `yaml:"opsgenie"`
@@ -51,6 +52,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 
 	if r.Syslog != nil {
 		return NewSyslogSink(r.Syslog)
+	}
+
+	if r.Stdout != nil {
+		return NewStdoutSink(r.Stdout)
 	}
 
 	if r.Elasticsearch != nil {
