@@ -88,7 +88,7 @@ receivers:
       create_topic: False
   - name: "eventbridge"
     eventbridge:
-      detailTyp: "deployment"
+      detailType: "deployment"
       source: "cd"
       eventBusName: "default"
       region: "ap-southeast-1"

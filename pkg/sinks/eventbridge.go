@@ -13,11 +13,11 @@ import (
 )
 
 type EventBridgeConfig struct {
-	DetailType   string              `yaml:"detailTyp"`
-	Details   map[string]interface{} `yaml:"details"`
-	Source 	  string				`yaml:"source"`
-	EventBusName string			`yaml:"eventBusName"`
-	Region string				`yaml:"region"`
+	DetailType   string                 `yaml:"detailType"`
+	Details      map[string]interface{} `yaml:"details"`
+	Source       string                 `yaml:"source"`
+	EventBusName string                 `yaml:"eventBusName"`
+	Region       string                 `yaml:"region"`
 }
 
 type EventBridgeSink struct {
@@ -29,13 +29,13 @@ func NewEventBridgeSink(cfg *EventBridgeConfig) (Sink, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(cfg.Region),
 		Retryer: client.DefaultRetryer{
-				NumMaxRetries:    client.DefaultRetryerMaxNumRetries,
-				MinRetryDelay:    client.DefaultRetryerMinRetryDelay,
-				MinThrottleDelay: client.DefaultRetryerMinThrottleDelay,
-				MaxRetryDelay:     client.DefaultRetryerMaxRetryDelay,
-				MaxThrottleDelay: client.DefaultRetryerMaxThrottleDelay,
+			NumMaxRetries:    client.DefaultRetryerMaxNumRetries,
+			MinRetryDelay:    client.DefaultRetryerMinRetryDelay,
+			MinThrottleDelay: client.DefaultRetryerMinThrottleDelay,
+			MaxRetryDelay:    client.DefaultRetryerMaxRetryDelay,
+			MaxThrottleDelay: client.DefaultRetryerMaxThrottleDelay,
 		},
-		},
+	},
 	)
 	if err != nil {
 		return nil, err
@@ -57,8 +57,8 @@ func (s *EventBridgeSink) Send(ctx context.Context, ev *kube.EnhancedEvent) erro
 			return err
 		}
 
-		byte, err := json.Marshal(res)
-		toSend = string(byte)
+		b, err := json.Marshal(res)
+		toSend = string(b)
 		if err != nil {
 			return err
 		}
@@ -67,18 +67,19 @@ func (s *EventBridgeSink) Send(ctx context.Context, ev *kube.EnhancedEvent) erro
 	}
 	tym := time.Now()
 	inputRequest := eventbridge.PutEventsRequestEntry{
-		Detail: &toSend,
-		DetailType: &s.cfg.DetailType,
-		Time: &tym,
-		Source: &s.cfg.Source,
+		Detail:       &toSend,
+		DetailType:   &s.cfg.DetailType,
+		Time:         &tym,
+		Source:       &s.cfg.Source,
 		EventBusName: &s.cfg.EventBusName,
 	}
 	log.Info().Str("InputEvent", inputRequest.String()).Msg("Request")
-	req,out := s.svc.PutEventsRequest(&eventbridge.PutEventsInput{Entries: []*eventbridge.PutEventsRequestEntry{&inputRequest}})
+
+	req, _ := s.svc.PutEventsRequest(&eventbridge.PutEventsInput{Entries: []*eventbridge.PutEventsRequestEntry{&inputRequest}})
+	// TODO: Retry failed events
 	err := req.Send()
-	if err!=nil{
-		log.Error().Str("Failed to send event. Err=", err.Error()).Msg("EventBridge Error")
-		log.Error().Str("Failed to send event. Aws out=", out.String()).Msg("EventBridge output")
+	if err != nil {
+		log.Error().Err(err).Msg("EventBridge Error")
 		return err
 	}
 	return nil
@@ -86,4 +87,3 @@ func (s *EventBridgeSink) Send(ctx context.Context, ev *kube.EnhancedEvent) erro
 
 func (s *EventBridgeSink) Close() {
 }
-
