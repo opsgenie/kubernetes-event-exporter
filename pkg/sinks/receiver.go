@@ -21,6 +21,7 @@ type ReceiverConfig struct {
 	Opscenter     *OpsCenterConfig     `yaml:"opscenter"`
 	Teams         *TeamsConfig         `yaml:"teams"`
 	BigQuery      *BigQueryConfig      `yaml:"bigquery"`
+	EventBridge   *EventBridgeConfig   `yaml:"eventbridge"`
 	Pipe          *PipeConfig          `yaml:"pipe"`
 }
 
@@ -100,6 +101,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 
 	if r.BigQuery != nil {
 		return NewBigQuerySink(r.BigQuery)
+	}
+
+	if r.EventBridge != nil {
+		return NewEventBridgeSink(r.EventBridge)
 	}
 
 	return nil, errors.New("unknown sink")
