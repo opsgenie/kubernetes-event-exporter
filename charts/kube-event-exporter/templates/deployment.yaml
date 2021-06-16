@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ include "kubeevent.fullname" . }}"
+  labels:
+    app: {{ template "kubeevent.name" . }}
+    chart: {{ template "kubeevent.chart" . }}
+    release: {{ template "kubeevent.releaseLabel" . }}
+{{- if .Values.exporter.labels }}
+{{ toYaml .Values.exporter.labels | indent 4 }}
+{{- end }}
+{{- if .Values.exporter.annotations }}
+  annotations:
+{{ toYaml .Values.exporter.annotations | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ toYaml .Values.exporter.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "kubeevent.name" . }}
+        release: {{ template "kubeevent.releaseLabel" . }}
+        version: v1
+    spec:
+      serviceAccountName: "{{ include "kubeevent.fullname" . }}"
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      containers:
+        - name: event-exporter
+          image: "{{ .Values.exporter.repository }}:{{ .Values.exporter.tag }}"
+          imagePullPolicy: {{ .Values.exporter.imagePullPolicy }}
+          args:
+            - -conf=/data/config.yaml
+          volumeMounts:
+            - mountPath: /data
+              name: cfg
+      volumes:
+        - name: cfg
+          configMap:
+            name: "{{ include "kubeevent.fullname" . }}-cfg"
+  selector:
+    matchLabels:
+      app: {{ template "kubeevent.name" . }}
+      release: {{ template "kubeevent.releaseLabel" . }}
+      version: v1

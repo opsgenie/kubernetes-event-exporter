@@ -1,0 +1,22 @@
+
+exporter:
+  annotations: {}
+  replicaCount: 1
+  repository: opsgenie/kubernetes-event-exporter
+  tag: 0.9
+  imagePullPolicy: IfNotPresent
+  config:
+    logLevel: error
+    logFormat: json
+    route:
+      routes:
+        - match:
+            - receiver: "dump"
+    receivers:
+      - name: "dump"
+        file:
+          path: "/dev/stdout"
+
+## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# - name: secretName

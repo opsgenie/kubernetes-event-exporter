@@ -1,0 +1,4 @@
+apiVersion: v2
+description: Kube event exporter helm chart
+name: kube-event-exporter
+version: 0.9
