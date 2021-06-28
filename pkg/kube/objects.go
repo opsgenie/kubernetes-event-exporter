@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"context"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -38,7 +39,7 @@ func GetObject(reference *v1.ObjectReference, clientset *kubernetes.Clientset, d
 	item, err := dynClient.
 		Resource(mapping.Resource).
 		Namespace(reference.Namespace).
-		Get(reference.Name, metav1.GetOptions{})
+		Get(context.TODO(), reference.Name, metav1.GetOptions{})
 
 	if err != nil {
 		return nil, err
