@@ -8,6 +8,8 @@ type ReceiverConfig struct {
 	InMemory      *InMemoryConfig      `yaml:"inMemory"`
 	Webhook       *WebhookConfig       `yaml:"webhook"`
 	File          *FileConfig          `yaml:"file"`
+	Syslog        *SyslogConfig        `yaml:"syslog"`
+	Stdout        *StdoutConfig        `yaml:"stdout"`
 	Elasticsearch *ElasticsearchConfig `yaml:"elasticsearch"`
 	Kinesis       *KinesisConfig       `yaml:"kinesis"`
 	Opsgenie      *OpsgenieConfig      `yaml:"opsgenie"`
@@ -20,6 +22,9 @@ type ReceiverConfig struct {
 	Teams         *TeamsConfig         `yaml:"teams"`
 	BigQuery      *BigQueryConfig      `yaml:"bigquery"`
 	Udp 		  *UDPConfig		   `yaml:"udp"`
+=======
+	EventBridge   *EventBridgeConfig   `yaml:"eventbridge"`
+	Pipe          *PipeConfig          `yaml:"pipe"`
 }
 
 func (r *ReceiverConfig) Validate() error {
@@ -36,12 +41,24 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 	}
 
 	// Sorry for this code, but its Go
+	if r.Pipe != nil {
+		return NewPipeSink(r.Pipe)
+	}
+
 	if r.Webhook != nil {
 		return NewWebhook(r.Webhook)
 	}
 
 	if r.File != nil {
 		return NewFileSink(r.File)
+	}
+
+	if r.Syslog != nil {
+		return NewSyslogSink(r.Syslog)
+	}
+
+	if r.Stdout != nil {
+		return NewStdoutSink(r.Stdout)
 	}
 
 	if r.Elasticsearch != nil {
@@ -90,6 +107,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 
 	if r.Udp != nil{
 		return NewUDPClient(r.Udp)
+  }
+  
+  if r.EventBridge != nil {
+		return NewEventBridgeSink(r.EventBridge)
 	}
 
 	return nil, errors.New("unknown sink")

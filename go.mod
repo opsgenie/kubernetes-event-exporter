@@ -1,6 +1,6 @@
 module github.com/opsgenie/kubernetes-event-exporter
 
-go 1.14
+go 1.16
 
 require (
   cloud.google.com/go v0.60.0 // indirect
@@ -13,20 +13,17 @@ require (
 	github.com/aws/aws-sdk-go v1.30.10
 	github.com/elastic/go-elasticsearch/v7 v7.4.1
 	github.com/gogo/protobuf v1.3.0 // indirect
-	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
 	github.com/googleapis/gnostic v0.3.1 // indirect
-	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.3
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/klauspost/cpuid v1.2.3 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
-	github.com/nlopes/slack v0.6.0
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.0.3
 	github.com/rs/zerolog v1.16.0
+	github.com/slack-go/slack v0.9.1
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf // indirect
 	google.golang.org/api v0.28.0

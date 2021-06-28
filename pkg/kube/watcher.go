@@ -1,13 +1,14 @@
 package kube
 
 import (
+	"time"
+
 	"github.com/rs/zerolog/log"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
-	"time"
 )
 
 type EventHandler func(event *EnhancedEvent)
@@ -51,7 +52,7 @@ func (e *EventWatcher) OnUpdate(oldObj, newObj interface{}) {
 func (e *EventWatcher) onEvent(event *corev1.Event) {
 	// TODO: Re-enable this after development
 	// It's probably an old event we are catching, it's not the best way but anyways
-	if time.Now().Sub(event.CreationTimestamp.Time) > time.Second*5 {
+	if time.Since(event.LastTimestamp.Time) > time.Second*5 {
 		return
 	}
 

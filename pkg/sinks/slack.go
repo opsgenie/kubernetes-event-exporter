@@ -2,16 +2,21 @@ package sinks
 
 import (
 	"context"
-	"github.com/nlopes/slack"
+
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog/log"
+	"github.com/slack-go/slack"
 )
 
 type SlackConfig struct {
-	Token   string            `yaml:"token"`
-	Channel string            `yaml:"channel"`
-	Message string            `yaml:"message"`
-	Fields  map[string]string `yaml:"fields"`
+	Token      string            `yaml:"token"`
+	Channel    string            `yaml:"channel"`
+	Message    string            `yaml:"message"`
+	Color      string            `yaml:"color"`
+	Footer     string            `yaml:"footer"`
+	Title      string            `yaml:"title"`
+	AuthorName string            `yaml:"author_name"`
+	Fields     map[string]string `yaml:"fields"`
 }
 
 type SlackSink struct {
@@ -52,7 +57,24 @@ func (s *SlackSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 				Short: false,
 			})
 		}
-		options = append(options, slack.MsgOptionAttachments(slack.Attachment{Fields: fields}))
+
+		// make slack attachment
+		slackAttachment := slack.Attachment{}
+		slackAttachment.Fields = fields
+		if s.cfg.AuthorName != "" {
+			slackAttachment.AuthorName = s.cfg.AuthorName
+		}
+		if s.cfg.Color != "" {
+			slackAttachment.Color = s.cfg.Color
+		}
+		if s.cfg.Title != "" {
+			slackAttachment.Title = s.cfg.Title
+		}
+		if s.cfg.Footer != "" {
+			slackAttachment.Footer = s.cfg.Footer
+		}
+
+		options = append(options, slack.MsgOptionAttachments(slackAttachment))
 	}
 
 	_ch, _ts, _text, err := s.client.SendMessageContext(ctx, channel, options...)

@@ -90,3 +90,19 @@ receivers:
       gcloud_project_id: "my-project"
       topic: "kube-event"
       create_topic: False
+  - name: "eventbridge"
+    eventbridge:
+      detailType: "deployment"
+      source: "cd"
+      eventBusName: "default"
+      region: "ap-southeast-1"
+      details:
+        message: "{{ .Message }}"
+        namespace: "{{ .Namespace }}"
+        reason: "{{ .Reason }}"
+        object: "{{ .Namespace }}"
+  - name: "syslog"
+    syslog:
+      network: "tcp"
+      address: "127.0.0.1:11514"
+      tag: "k8s.event"
