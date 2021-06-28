@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: event-exporter-cfg
+data:
+  config.yaml: |
+{{ include "config.yaml" . | indent 4}}

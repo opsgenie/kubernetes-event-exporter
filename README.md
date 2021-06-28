@@ -372,6 +372,16 @@ receivers:
       timeout_seconds:
 ```
 
+# Udp
+
+It could be used to send json logs to logstash
+```yaml
+receivers:
+  - name: "my-udp"
+    udp:
+      host:
+```
+
 # Pipe
 
 pipe output directly into some file descriptor
@@ -400,3 +410,11 @@ receivers:
        object: "{{ .Namespace }}"
 
 ```
+
+
+### Planned Receivers
+
+- AWS Firehose
+- Splunk
+- Redis
+- Logstash(Upd Receiver?)

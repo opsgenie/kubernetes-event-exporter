@@ -1,0 +1,17 @@
+{{- define "config.yaml"}}
+{{- if .Values.configOverride }}
+{{- toYaml .Values.configOverride }}
+{{- else }}
+logLevel: {{ .Values.config.log.level}}
+logFormat: {{ .Values.config.log.format}}
+route:
+    routes:
+    {{- range .Values.config.routes }}
+    - {{- toYaml . | nindent 6}}
+    {{- end }}
+receivers:
+    {{- range .Values.config.receivers }}
+    - {{- toYaml . | nindent 6}}
+    {{- end }}
+{{- end }}
+{{- end }}
