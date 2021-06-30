@@ -8,14 +8,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"github.com/rs/zerolog/log"
 )
 
 type ElasticsearchConfig struct {
@@ -175,9 +177,14 @@ func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error 
 	if err != nil {
 		return err
 	}
-
 	defer resp.Body.Close()
-	_ = resp.Body
+	if resp.StatusCode != http.StatusOK {
+		respByte, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Logger.Err(err)
+		}
+		log.Error().Msg(string(respByte))
+	}
 	return nil
 }
 
