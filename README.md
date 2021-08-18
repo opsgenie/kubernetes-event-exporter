@@ -174,7 +174,7 @@ Firehose is an AWS service providing high throughput message collection for use 
 # ...
 receivers:
   - name: "firehose"
-    kineis:
+    firehose:
       deliveryStreamName: "events-pipeline"
       region: us-west-2
       layout: # Optional
