@@ -234,14 +234,28 @@ Kafka is a popular tool used for real-time data pipelines. You can combine it wi
 receivers:
   - name: "kafka"
     kafka:
+      clientId: "kubernetes"
       topic: "kube-event"
       brokers:
         - "localhost:9092"
+      compressionCodec: "snappy"
       tls:
-        enable: false
+        enable: true
         certFile: "kafka-client.crt"
         keyFile: "kafka-client.key"
         caFile: "kafka-ca.crt"
+      sasl:
+        enable: true
+        username: "kube-event-producer"
+        passsord: "kube-event-producer-password"
+      layout: #optionnal
+        kind: {{ .InvolvedObject.Kind }}
+        namespace: {{ .InvolvedObject.Namespace }}
+        name: {{ .InvolvedObject.Name }}
+        reason: {{ .Reason }}
+        message: {{ .Message }}
+        type: {{ .Type }}
+        createdAt: {{ .GetTimestampISO8601 }}
 ```
 
 ### OpsCenter
