@@ -5,13 +5,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"io/ioutil"
-	"math/rand"
-	"time"
-
 	"github.com/Shopify/sarama"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog/log"
+	"io/ioutil"
 )
 
 // KafkaConfig is the Kafka producer configuration
@@ -20,11 +17,7 @@ type KafkaConfig struct {
 	Brokers      	 []string               `yaml:"brokers"`
 	Layout       	 map[string]interface{} `yaml:"layout"`
 	ClientId     	 string                 `yaml:"clientId"`
-	Version      	 string                 `yaml:"version"`
-	MaxBytesSize 	 int                    `yaml:"maxBytesSize" default:"1000000"`
-	Timeout      	 int32                  `yaml:"timeout" default:"10"`
 	CompressionCodec string					`yaml:"compressionCodec" default:"none"`
-	KeepAlive        int32					`yaml:"keepAlive" default:"0"`
 	TLS     struct {
 		Enable             bool   `yaml:"enable"`
 		CaFile             string `yaml:"caFile"`
@@ -118,11 +111,6 @@ func createSaramaProducer(cfg *KafkaConfig) (sarama.SyncProducer, error) {
 	if _, ok := CompressionCodecs[cfg.CompressionCodec]; ok {
 		saramaConfig.Producer.Compression = CompressionCodecs[cfg.CompressionCodec]
 	}
-	saramaConfig.Producer.MaxMessageBytes = cfg.MaxBytesSize
-	saramaConfig.Producer.Timeout = time.Duration(rand.Int31n(cfg.Timeout)) * time.Second
-
-	// Net Config
-	saramaConfig.Net.KeepAlive = time.Duration(rand.Int31n(cfg.KeepAlive)) * time.Second
 
 	// TLS Client auth override
 	if cfg.TLS.Enable {
