@@ -52,3 +52,8 @@ func (e *EnhancedEvent) ToJSON() []byte {
 func (e *EnhancedEvent) GetTimestampMs() int64 {
 	return e.FirstTimestamp.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 }
+
+func (e *EnhancedEvent) GetTimestampISO8601() string {
+	layout := "2006-01-02T15:04:05.000Z"
+	return e.FirstTimestamp.Format(layout)
+}
