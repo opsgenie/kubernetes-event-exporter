@@ -8,14 +8,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"github.com/rs/zerolog/log"
 )
 
 type ElasticsearchConfig struct {
@@ -177,7 +179,13 @@ func (e *Elasticsearch) Send(ctx context.Context, ev *kube.EnhancedEvent) error 
 	}
 
 	defer resp.Body.Close()
-	_ = resp.Body
+	if resp.StatusCode > 399 {
+		rb, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		log.Error().Msgf("Indexing failed: %s", string(rb))
+	}
 	return nil
 }
 
