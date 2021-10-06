@@ -12,13 +12,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// KafkaEncoder is an interface type for adding an
-// encoder to the kafka data pipeline
-// ATM avro is the only one supported
-type KafkaEncoder interface {
-	encode([]byte) ([]byte, error)
-}
-
 // KafkaConfig is the Kafka producer configuration
 type KafkaConfig struct {
 	Topic   string                 `yaml:"topic"`
@@ -32,6 +25,12 @@ type KafkaConfig struct {
 		InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
 	} `yaml:"tls"`
 	KafkaEncode Avro `yaml:"avro"`
+}
+
+// KafkaEncoder is an interface type for adding an
+// encoder to the kafka data pipeline
+type KafkaEncoder interface {
+	encode([]byte) ([]byte, error)
 }
 
 // KafkaSink is a sink that sends events to a Kafka topic
