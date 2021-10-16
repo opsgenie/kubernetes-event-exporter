@@ -75,7 +75,7 @@ receivers:
 
 ### Webhooks/HTTP
 
-Webhooks are te easiest way of integrating this tool to external systems. It allows templating & custom headers which
+Webhooks are the easiest way of integrating this tool to external systems. It allows templating & custom headers which
 allows you to push events to many possible sources out there. See [Customizing Payload] for more information.
 
 ```yaml
