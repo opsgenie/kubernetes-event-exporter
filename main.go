@@ -57,6 +57,10 @@ func main() {
 		log.Fatal().Str("log_format", cfg.LogFormat).Msg("Unknown log format")
 	}
 
+	if cfg.ThrottlePeriod == 0 {
+		cfg.ThrottlePeriod = 5
+	}
+
 	kubeconfig, err := kube.GetKubernetesConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot get kubeconfig")
