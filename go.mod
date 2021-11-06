@@ -20,6 +20,7 @@ require (
 	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/klauspost/cpuid v1.2.3 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
+	github.com/linkedin/goavro/v2 v2.10.1
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.0.3
 	github.com/rs/zerolog v1.16.0
 	github.com/slack-go/slack v0.9.1
