@@ -47,11 +47,11 @@ type KafkaSink struct {
 }
 
 var CompressionCodecs = map[string]sarama.CompressionCodec{
-	"none": sarama.CompressionNone,
+	"none":   sarama.CompressionNone,
 	"snappy": sarama.CompressionSnappy,
-	"gzip": sarama.CompressionGZIP,
-	"lz4": sarama.CompressionLZ4,
-	"zstd": sarama.CompressionZSTD,
+	"gzip":   sarama.CompressionGZIP,
+	"lz4":    sarama.CompressionLZ4,
+	"zstd":   sarama.CompressionZSTD,
 }
 
 func NewKafkaSink(cfg *KafkaConfig) (Sink, error) {
