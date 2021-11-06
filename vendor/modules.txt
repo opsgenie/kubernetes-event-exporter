@@ -164,6 +164,9 @@ github.com/klauspost/compress/zstd/internal/xxhash
 ## explicit
 # github.com/konsorten/go-windows-terminal-sequences v1.0.1
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/linkedin/goavro/v2 v2.10.1
+## explicit
+github.com/linkedin/goavro/v2
 # github.com/mitchellh/copystructure v1.0.0
 ## explicit
 github.com/mitchellh/copystructure

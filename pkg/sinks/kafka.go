@@ -13,12 +13,12 @@ import (
 
 // KafkaConfig is the Kafka producer configuration
 type KafkaConfig struct {
-	Topic        	 string                 `yaml:"topic"`
-	Brokers      	 []string               `yaml:"brokers"`
-	Layout       	 map[string]interface{} `yaml:"layout"`
-	ClientId     	 string                 `yaml:"clientId"`
-	CompressionCodec string					`yaml:"compressionCodec" default:"none"`
-	TLS     struct {
+	Topic            string                 `yaml:"topic"`
+	Brokers          []string               `yaml:"brokers"`
+	Layout           map[string]interface{} `yaml:"layout"`
+	ClientId         string                 `yaml:"clientId"`
+	CompressionCodec string                 `yaml:"compressionCodec" default:"none"`
+	TLS              struct {
 		Enable             bool   `yaml:"enable"`
 		CaFile             string `yaml:"caFile"`
 		CertFile           string `yaml:"certFile"`
@@ -26,37 +26,55 @@ type KafkaConfig struct {
 		InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
 	} `yaml:"tls"`
 	SASL struct {
-		Enable    bool   `yaml:"enable"`
-		Username  string `yaml:"username"`
-		Password  string `yaml:"password"`
+		Enable   bool   `yaml:"enable"`
+		Username string `yaml:"username"`
+		Password string `yaml:"password"`
 	} `yaml:"sasl"`
+	KafkaEncode Avro `yaml:"avro"`
+}
+
+// KafkaEncoder is an interface type for adding an
+// encoder to the kafka data pipeline
+type KafkaEncoder interface {
+	encode([]byte) ([]byte, error)
 }
 
 // KafkaSink is a sink that sends events to a Kafka topic
 type KafkaSink struct {
 	producer sarama.SyncProducer
 	cfg      *KafkaConfig
+	encoder  KafkaEncoder
 }
 
 var CompressionCodecs = map[string]sarama.CompressionCodec{
-	"none": sarama.CompressionNone,
+	"none":   sarama.CompressionNone,
 	"snappy": sarama.CompressionSnappy,
-	"gzip": sarama.CompressionGZIP,
-	"lz4": sarama.CompressionLZ4,
-	"zstd": sarama.CompressionZSTD,
+	"gzip":   sarama.CompressionGZIP,
+	"lz4":    sarama.CompressionLZ4,
+	"zstd":   sarama.CompressionZSTD,
 }
 
 func NewKafkaSink(cfg *KafkaConfig) (Sink, error) {
+	var avro KafkaEncoder
 	producer, err := createSaramaProducer(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	log.Info().Msgf("kafka: Producer initialized for topic: %s, brokers: %s", cfg.Topic, cfg.Brokers)
+	if len(cfg.KafkaEncode.SchemaID) > 0 {
+		var err error
+		avro, err = NewAvroEncoder(cfg.KafkaEncode.SchemaID, cfg.KafkaEncode.Schema)
+		if err != nil {
+			return nil, err
+		}
+		log.Info().Msgf("kafka: Producer using avro encoding with schemaid: %s", cfg.KafkaEncode.SchemaID)
+	}
 
 	return &KafkaSink{
 		producer: producer,
 		cfg:      cfg,
+		encoder:  avro,
 	}, nil
 }
 
@@ -71,6 +89,12 @@ func (k *KafkaSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 		}
 
 		toSend, err = json.Marshal(res)
+		if err != nil {
+			return err
+		}
+	} else if len(k.cfg.KafkaEncode.SchemaID) > 0 {
+		var err error
+		toSend, err = k.encoder.encode(ev.ToJSON())
 		if err != nil {
 			return err
 		}

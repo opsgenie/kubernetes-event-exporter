@@ -12,7 +12,7 @@ Head on to `deploy/` folder and apply the YAMLs in the given filename order. Do 
 
 ## Configuration
 
-Configuration is done via a YAML file, when run in Kubernetes, it's in ConfigMap. The tool watches all the events and
+Configuration is done via a YAML file, when run in Kubernetes, ConfigMap. The tool watches all the events and
 user has to option to filter out some events, according to their properties. Critical events can be routed to alerting
 tools such as Opsgenie, or all events can be dumped to an Elasticsearch instance. You can use namespaces, labels on the
 related object to route some Pod related events to owners via Slack. The final routing is a tree which allows
