@@ -1,4 +1,4 @@
-logLevel: debug
+logLevel: error
 logFormat: json
 route:
   routes:
