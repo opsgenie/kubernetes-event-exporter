@@ -5,18 +5,19 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"io/ioutil"
-
 	"github.com/Shopify/sarama"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/rs/zerolog/log"
+	"io/ioutil"
 )
 
 // KafkaConfig is the Kafka producer configuration
 type KafkaConfig struct {
-	Topic   string                 `yaml:"topic"`
-	Brokers []string               `yaml:"brokers"`
-	Layout  map[string]interface{} `yaml:"layout"`
+	Topic        	 string                 `yaml:"topic"`
+	Brokers      	 []string               `yaml:"brokers"`
+	Layout       	 map[string]interface{} `yaml:"layout"`
+	ClientId     	 string                 `yaml:"clientId"`
+	CompressionCodec string					`yaml:"compressionCodec" default:"none"`
 	TLS     struct {
 		Enable             bool   `yaml:"enable"`
 		CaFile             string `yaml:"caFile"`
@@ -24,12 +25,25 @@ type KafkaConfig struct {
 		KeyFile            string `yaml:"keyFile"`
 		InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
 	} `yaml:"tls"`
+	SASL struct {
+		Enable    bool   `yaml:"enable"`
+		Username  string `yaml:"username"`
+		Password  string `yaml:"password"`
+	} `yaml:"sasl"`
 }
 
 // KafkaSink is a sink that sends events to a Kafka topic
 type KafkaSink struct {
 	producer sarama.SyncProducer
 	cfg      *KafkaConfig
+}
+
+var CompressionCodecs = map[string]sarama.CompressionCodec{
+	"none": sarama.CompressionNone,
+	"snappy": sarama.CompressionSnappy,
+	"gzip": sarama.CompressionGZIP,
+	"lz4": sarama.CompressionLZ4,
+	"zstd": sarama.CompressionZSTD,
 }
 
 func NewKafkaSink(cfg *KafkaConfig) (Sink, error) {
@@ -88,17 +102,19 @@ func createSaramaProducer(cfg *KafkaConfig) (sarama.SyncProducer, error) {
 	// Default Sarama config
 	saramaConfig := sarama.NewConfig()
 	saramaConfig.Version = sarama.MaxVersion
+	saramaConfig.Metadata.Full = true
+	saramaConfig.ClientID = cfg.ClientId
 
 	// Necessary for SyncProducer
 	saramaConfig.Producer.Return.Successes = true
 	saramaConfig.Producer.Return.Errors = true
+	if _, ok := CompressionCodecs[cfg.CompressionCodec]; ok {
+		saramaConfig.Producer.Compression = CompressionCodecs[cfg.CompressionCodec]
+	}
 
 	// TLS Client auth override
 	if cfg.TLS.Enable {
-		cert, err := tls.LoadX509KeyPair(cfg.TLS.CertFile, cfg.TLS.KeyFile)
-		if err != nil {
-			return nil, err
-		}
+
 		caCert, err := ioutil.ReadFile(cfg.TLS.CaFile)
 		if err != nil {
 			return nil, err
@@ -109,10 +125,25 @@ func createSaramaProducer(cfg *KafkaConfig) (sarama.SyncProducer, error) {
 
 		saramaConfig.Net.TLS.Enable = true
 		saramaConfig.Net.TLS.Config = &tls.Config{
-			Certificates:       []tls.Certificate{cert},
 			RootCAs:            caCertPool,
 			InsecureSkipVerify: cfg.TLS.InsecureSkipVerify,
 		}
+
+		if cfg.TLS.CertFile != "" && cfg.TLS.KeyFile != "" {
+			cert, err := tls.LoadX509KeyPair(cfg.TLS.CertFile, cfg.TLS.KeyFile)
+			if err != nil {
+				return nil, err
+			}
+
+			saramaConfig.Net.TLS.Config.Certificates = []tls.Certificate{cert}
+		}
+	}
+
+	// SASL Client auth
+	if cfg.SASL.Enable {
+		saramaConfig.Net.SASL.Enable = true
+		saramaConfig.Net.SASL.User = cfg.SASL.Username
+		saramaConfig.Net.SASL.Password = cfg.SASL.Password
 	}
 
 	// TODO: Find a generic way to override all other configs
