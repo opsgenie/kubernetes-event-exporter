@@ -166,6 +166,19 @@ receivers:
       layout: # Optional
 ```
 
+### Firehose
+
+Firehose is an AWS service providing high throughput message collection for use in stream processing.
+
+```yaml
+# ...
+receivers:
+  - name: "firehose"
+    firehose:
+      deliveryStreamName: "events-pipeline"
+      region: us-west-2
+      layout: # Optional
+```
 ### SNS
 
 SNS is an AWS service for highly durable pub/sub messaging system.
