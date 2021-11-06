@@ -3,10 +3,7 @@ package sinks
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -30,23 +27,17 @@ type ElasticsearchConfig struct {
 	// Indexing preferences
 	UseEventID bool `yaml:"useEventID"`
 	// DeDot all labels and annotations in the event. For both the event and the involvedObject
-	DeDot       bool   `yaml:"deDot"`
-	Index       string `yaml:"index"`
-	IndexFormat string `yaml:"indexFormat"`
-	Type        string `yaml:"type"`
-	TLS         struct {
-		InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
-		ServerName         string `yaml:"serverName"`
-		CaFile             string `yaml:"caFile"`
-		KeyFile            string `yaml:"keyFile"`
-		CertFile           string `yaml:"certFile"`
-	} `yaml:"tls"`
-	Layout map[string]interface{} `yaml:"layout"`
+	DeDot       bool                   `yaml:"deDot"`
+	Index       string                 `yaml:"index"`
+	IndexFormat string                 `yaml:"indexFormat"`
+	Type        string                 `yaml:"type"`
+	TLS         TLS                    `yaml:"tls"`
+	Layout      map[string]interface{} `yaml:"layout"`
 }
 
 func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
 
-	tlsClientConfig, err := setupTLS(cfg)
+	tlsClientConfig, err := setupTLS(&cfg.TLS)
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup TLS: %w", err)
 	}
@@ -69,40 +60,6 @@ func NewElasticsearch(cfg *ElasticsearchConfig) (*Elasticsearch, error) {
 		client: client,
 		cfg:    cfg,
 	}, nil
-}
-
-func setupTLS(cfg *ElasticsearchConfig) (*tls.Config, error) {
-	var caCert []byte
-
-	if len(cfg.TLS.CaFile) > 0 {
-		readFile, err := ioutil.ReadFile(cfg.TLS.CaFile)
-		if err != nil {
-			return nil, err
-		}
-		caCert = readFile
-	}
-
-	tlsClientConfig := &tls.Config{
-		InsecureSkipVerify: cfg.TLS.InsecureSkipVerify,
-		ServerName:         cfg.TLS.ServerName,
-	}
-	if len(cfg.TLS.KeyFile) > 0 && len(cfg.TLS.CertFile) > 0 {
-		tlsClientConfig.RootCAs = x509.NewCertPool()
-		tlsClientConfig.RootCAs.AppendCertsFromPEM(caCert)
-
-		cert, err := tls.LoadX509KeyPair(cfg.TLS.CertFile, cfg.TLS.KeyFile)
-		if err != nil {
-			return nil, fmt.Errorf("could not read client certificate or key: %w", err)
-		}
-		tlsClientConfig.Certificates = append(tlsClientConfig.Certificates, cert)
-	}
-	if len(cfg.TLS.KeyFile) > 0 && len(cfg.TLS.CertFile) == 0 {
-		return nil, errors.New("configured keyFile but forget certFile for client certificate authentication")
-	}
-	if len(cfg.TLS.KeyFile) == 0 && len(cfg.TLS.CertFile) > 0 {
-		return nil, errors.New("configured certFile but forget keyFile for client certificate authentication")
-	}
-	return tlsClientConfig, nil
 }
 
 type Elasticsearch struct {
