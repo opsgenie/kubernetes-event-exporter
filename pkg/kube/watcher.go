@@ -68,6 +68,7 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 	ev := &EnhancedEvent{
 		Event: *event.DeepCopy(),
 	}
+	ev.Event.ManagedFields = nil
 
 	labels, err := e.labelCache.GetLabelsWithCache(&event.InvolvedObject)
 	if err != nil {
