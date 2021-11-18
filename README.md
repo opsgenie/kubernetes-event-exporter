@@ -228,12 +228,12 @@ Standard out is also another file in Linux. `logLevel` refers to the application
 can use the following configuration as an example.
 
 By default, events emit with eventime > 5seconds since catching are not collected.
-You can set this period with trottlePeriod in seconds. Consider to increase time of seconds to catch more events like "Backoff".
+You can set this period with throttlePeriod in seconds. Consider to increase time of seconds to catch more events like "Backoff".
 
 ```yaml
 logLevel: error
 logFormat: json
-trottlePeriod: 5
+throttlePeriod: 5
 route:
   routes:
     - match:
