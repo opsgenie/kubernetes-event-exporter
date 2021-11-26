@@ -2,14 +2,16 @@ package kube
 
 import (
 	"encoding/json"
-	corev1 "k8s.io/api/core/v1"
 	"strings"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 type EnhancedEvent struct {
 	corev1.Event   `json:",inline"`
 	InvolvedObject EnhancedObjectReference `json:"involvedObject"`
+	Timestamp      time.Time               `json:"@timestamp"`
 }
 
 // DeDot replaces all dots in the labels and annotations with underscores. This is required for example in the
@@ -45,6 +47,7 @@ type EnhancedObjectReference struct {
 // ToJSON does not return an error because we are %99 confident it is JSON serializable.
 // TODO(makin) Is it a bad practice? It's open to discussion.
 func (e *EnhancedEvent) ToJSON() []byte {
+	e.Timestamp = e.FirstTimestamp.Time
 	b, _ := json.Marshal(e)
 	return b
 }
