@@ -21,6 +21,7 @@ func (e EnhancedEvent) DeDot() EnhancedEvent {
 	c.Annotations = dedotMap(e.Annotations)
 	c.InvolvedObject.Labels = dedotMap(e.InvolvedObject.Labels)
 	c.InvolvedObject.Annotations = dedotMap(e.InvolvedObject.Annotations)
+	c.InvolvedObject.NamespaceLabels = dedotMap(e.InvolvedObject.NamespaceLabels)
 	return c
 }
 
@@ -40,6 +41,7 @@ type EnhancedObjectReference struct {
 	corev1.ObjectReference `json:",inline"`
 	Labels                 map[string]string `json:"labels,omitempty"`
 	Annotations            map[string]string `json:"annotations,omitempty"`
+	NamespaceLabels        map[string]string `json:"namespaceLabels,omitempty"`
 }
 
 // ToJSON does not return an error because we are %99 confident it is JSON serializable.

@@ -14,12 +14,13 @@ import (
 type EventHandler func(event *EnhancedEvent)
 
 type EventWatcher struct {
-	informer        cache.SharedInformer
-	stopper         chan struct{}
-	labelCache      *LabelCache
-	annotationCache *AnnotationCache
-	fn              EventHandler
-	throttlePeriod  time.Duration
+	informer            cache.SharedInformer
+	stopper             chan struct{}
+	labelCache          *LabelCache
+	annotationCache     *AnnotationCache
+	namespaceLabelCache *NamespaceLabelCache
+	fn                  EventHandler
+	throttlePeriod      time.Duration
 }
 
 func NewEventWatcher(config *rest.Config, namespace string, throttlePeriod int64, fn EventHandler) *EventWatcher {
@@ -28,12 +29,13 @@ func NewEventWatcher(config *rest.Config, namespace string, throttlePeriod int64
 	informer := factory.Core().V1().Events().Informer()
 
 	watcher := &EventWatcher{
-		informer:        informer,
-		stopper:         make(chan struct{}),
-		labelCache:      NewLabelCache(config),
-		annotationCache: NewAnnotationCache(config),
-		fn:              fn,
-		throttlePeriod:  time.Second*time.Duration(throttlePeriod),
+		informer:            informer,
+		stopper:             make(chan struct{}),
+		labelCache:          NewLabelCache(config),
+		annotationCache:     NewAnnotationCache(config),
+		namespaceLabelCache: NewNamespaceLabelCache(config),
+		fn:                  fn,
+		throttlePeriod:      time.Second * time.Duration(throttlePeriod),
 	}
 
 	informer.AddEventHandler(watcher)
@@ -85,6 +87,13 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 	} else {
 		ev.InvolvedObject.Annotations = annotations
 		ev.InvolvedObject.ObjectReference = *event.InvolvedObject.DeepCopy()
+	}
+
+	namespaceLabels, err := e.namespaceLabelCache.GetNamespaceLabelsWithCache(event.Namespace)
+	if err != nil {
+		log.Error().Err(err).Msg("Cannot list namespace labels of the object")
+	} else {
+		ev.InvolvedObject.NamespaceLabels = namespaceLabels
 	}
 
 	e.fn(ev)
