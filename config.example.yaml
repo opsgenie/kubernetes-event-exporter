@@ -1,5 +1,8 @@
 logLevel: debug
 logFormat: json
+throttlePeriod: 10
+kubeQPS: 60
+kubeBurst: 60
 # namespace: my-namespace-only # Omitting it defaults to all namespaces.
 route:
   # Main route
@@ -7,8 +10,8 @@ route:
     # This route allows dumping all events because it has no fields to match and no drop rules.
     - match:
         - receiver: "dump"
-    # This starts another route, drops all the events in *test* namespaces and Normal events 
-    # for capturing critical events 
+    # This starts another route, drops all the events in *test* namespaces and Normal events
+    # for capturing critical events
     - drop:
         - namespace: "*test*"
         - type: "Normal"
@@ -17,10 +20,10 @@ route:
         - receiver: "pipe"
     # This a final route for user messages
     - match:
-      - kind: "Pod|Deployment|ReplicaSet"
-        labels:
-          version: "dev"
-        receiver: "slack"
+        - kind: "Pod|Deployment|ReplicaSet"
+          labels:
+            version: "dev"
+          receiver: "slack"
 receivers:
   - name: "dump"
     elasticsearch:
