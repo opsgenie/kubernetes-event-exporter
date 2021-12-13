@@ -60,6 +60,7 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 
 	log.Debug().
 		Str("msg", event.Message).
+		Str("clustername", event.ClusterName).
 		Str("namespace", event.Namespace).
 		Str("reason", event.Reason).
 		Str("involvedObject", event.InvolvedObject.Name).
