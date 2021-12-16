@@ -206,6 +206,12 @@ github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 ## explicit
 github.com/modern-go/reflect2
+# github.com/opensearch-project/opensearch-go v1.0.0
+## explicit; go 1.11
+github.com/opensearch-project/opensearch-go
+github.com/opensearch-project/opensearch-go/internal/version
+github.com/opensearch-project/opensearch-go/opensearchapi
+github.com/opensearch-project/opensearch-go/opensearchtransport
 # github.com/opsgenie/opsgenie-go-sdk-v2 v1.0.3
 ## explicit; go 1.12
 github.com/opsgenie/opsgenie-go-sdk-v2/alert

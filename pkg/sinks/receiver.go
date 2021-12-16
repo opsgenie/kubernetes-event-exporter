@@ -13,6 +13,7 @@ type ReceiverConfig struct {
 	Elasticsearch *ElasticsearchConfig `yaml:"elasticsearch"`
 	Kinesis       *KinesisConfig       `yaml:"kinesis"`
 	Firehose      *FirehoseConfig      `yaml:"firehose"`
+	OpenSearch    *OpenSearchConfig    `yaml:"opensearch"`
 	Opsgenie      *OpsgenieConfig      `yaml:"opsgenie"`
 	SQS           *SQSConfig           `yaml:"sqs"`
 	SNS           *SNSConfig           `yaml:"sns"`
@@ -70,6 +71,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 
 	if r.Firehose != nil {
 		return NewFirehoseSink(r.Firehose)
+	}
+
+	if r.OpenSearch != nil {
+		return NewOpenSearch(r.OpenSearch)
 	}
 
 	if r.Opsgenie != nil {

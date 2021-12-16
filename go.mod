@@ -11,6 +11,7 @@ require (
 	github.com/elastic/go-elasticsearch/v7 v7.4.1
 	github.com/hashicorp/golang-lru v0.5.3
 	github.com/linkedin/goavro/v2 v2.10.1
+	github.com/opensearch-project/opensearch-go v1.0.0
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.0.3
 	github.com/rs/zerolog v1.16.0
 	github.com/slack-go/slack v0.9.1

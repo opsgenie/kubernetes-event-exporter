@@ -124,6 +124,37 @@ receivers:
         serverName: # optional, the domain, the certificate was issued for, in case it doesn't match the hostname used for the connection
         caFile: # optional, path to the CA file of the trusted authority the cert was signed with 
 ```
+### OpenSsearch
+
+[OpenSearch](https://opensearch.org/) is a community-driven, open source search and analytics suite derived from Apache 2.0 licensed Elasticsearch 7.10.2 & Kibana 7.10.2.
+OpenSearch enables people to easily ingest, secure, search, aggregate, view, and analyze data. These capabilities are popular for use cases such as application search, log analytics, and more.
+You may decide to push all events to OpenSearch and do some interesting queries over time to find out
+which images are pulled, how often pod schedules happen etc.
+
+```yaml
+# ...
+receivers:
+  - name: "dump"
+    opensearch:
+      hosts:
+        - http://localhost:9200
+      index: kube-events
+      # Ca be used optionally for time based indices, accepts Go time formatting directives
+      indexFormat: "kube-events-{2006-01-02}"
+      username: # optional
+      password: # optional
+      # If set to true, it allows updating the same document in ES (might be useful handling count)
+      useEventID: true|false
+      # Type should be only used for clusters Version 6 and lower.
+      # type: kube-event
+      # If set to true, all dots in labels and annotation keys are replaced by underscores. Defaults false
+      deDot: true|false
+      layout: # Optional
+      tls: # optional, advanced options for tls
+        insecureSkipVerify: true|false # optional, if set to true, the tls cert won't be verified
+        serverName: # optional, the domain, the certificate was issued for, in case it doesn't match the hostname used for the connection
+        caFile: # optional, path to the CA file of the trusted authority the cert was signed with 
+```
 
 ### Slack
 
