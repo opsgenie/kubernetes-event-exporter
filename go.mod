@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/bigquery v1.9.0
 	cloud.google.com/go/pubsub v1.3.1
 	github.com/Masterminds/sprig v2.22.0+incompatible
+	github.com/clbanning/mxj v1.8.4
 	github.com/Shopify/sarama v1.24.1
 	github.com/aws/aws-sdk-go v1.41.19
 	github.com/elastic/go-elasticsearch/v7 v7.4.1

@@ -76,7 +76,8 @@ receivers:
 ### Webhooks/HTTP
 
 Webhooks are the easiest way of integrating this tool to external systems. It allows templating & custom headers which
-allows you to push events to many possible sources out there. See [Customizing Payload] for more information.
+allows you to push events to many possible sources out there. See [Customizing Payload](#customizing-payload) for more information.
+In addition Webhooks/HTTP support XML payload, specifying header `Content-Type: application/xml`. See [XML Payload](#xml-payload) for more information.
 
 ```yaml
 # ...
@@ -89,6 +90,77 @@ receivers:
         User-Agent: kube-event-exporter 1.0
       layout: # Optional
 ```
+#### XML payload
+```yaml
+# ...
+receivers:
+  - name: "alerts"
+    webhook:
+      endpoint: "https://my-super-secret-service.com"
+      headers:
+        X-API-KEY: "123"
+        User-Agent: kube-event-exporter 1.0
+        Content-Type: "application/xml"
+      layout: # Optional
+```
+
+Resulting XML payload differ if there is a root key or not. Root key is used as root tag in XML payload, otherwise root tag is `<doc>`.
+
+With root key
+```yaml
+# ...
+receivers:
+  - name: "alerts"
+    webhook:
+      endpoint: "https://my-super-secret-service.com"
+      headers:
+        Content-Type: "application/xml"
+      layout:
+        event:
+          region: "us-west-2"
+          eventType: "kubernetes-event"
+          type: "{{ .Type }}"
+          count: "{{ .Count }}"
+```
+
+XML payload
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<event>
+   <count>23</count>
+   <eventType>kubernetes-event</eventType>
+   <region>us-west-2</region>
+   <type>Warning</type>
+</event>
+```
+
+Without root key
+```yaml
+# ...
+receivers:
+  - name: "alerts"
+    webhook:
+      endpoint: "https://my-super-secret-service.com"
+      headers:
+        Content-Type: "application/xml"
+      layout:
+        region: "us-west-2"
+        eventType: "kubernetes-event"
+        type: "{{ .Type }}"
+        count: "{{ .Count }}"
+```
+
+XML payload
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<doc>
+   <count>23</count>
+   <eventType>kubernetes-event</eventType>
+   <region>us-west-2</region>
+   <type>Warning</type>
+</doc>
+```
+
 
 ### Elasticsearch
 
