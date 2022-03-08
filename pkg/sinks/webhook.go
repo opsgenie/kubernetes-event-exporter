@@ -50,6 +50,7 @@ func (w *Webhook) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	}
 	client := http.DefaultClient
 	client.Transport = &http.Transport{
+		Proxy:           http.ProxyFromEnvironment,
 		TLSClientConfig: tlsClientConfig,
 	}
 	resp, err := client.Do(req)
