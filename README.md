@@ -12,7 +12,7 @@ Head on to `deploy/` folder and apply the YAMLs in the given filename order. Do 
 
 ## Configuration
 
-Configuration is done via a YAML file, when run in Kubernetes, it's in ConfigMap. The tool watches all the events and
+Configuration is done via a YAML file, when run in Kubernetes, ConfigMap. The tool watches all the events and
 user has to option to filter out some events, according to their properties. Critical events can be routed to alerting
 tools such as Opsgenie, or all events can be dumped to an Elasticsearch instance. You can use namespaces, labels on the
 related object to route some Pod related events to owners via Slack. The final routing is a tree which allows
@@ -75,7 +75,7 @@ receivers:
 
 ### Webhooks/HTTP
 
-Webhooks are te easiest way of integrating this tool to external systems. It allows templating & custom headers which
+Webhooks are the easiest way of integrating this tool to external systems. It allows templating & custom headers which
 allows you to push events to many possible sources out there. See [Customizing Payload] for more information.
 
 ```yaml
@@ -166,6 +166,19 @@ receivers:
       layout: # Optional
 ```
 
+### Firehose
+
+Firehose is an AWS service providing high throughput message collection for use in stream processing.
+
+```yaml
+# ...
+receivers:
+  - name: "firehose"
+    firehose:
+      deliveryStreamName: "events-pipeline"
+      region: us-west-2
+      layout: # Optional
+```
 ### SNS
 
 SNS is an AWS service for highly durable pub/sub messaging system.
@@ -214,9 +227,13 @@ Standard out is also another file in Linux. `logLevel` refers to the application
 `trace`, `debug`, `info`, `warn`, `error`, `fatal` and `panic`. When not specified, default level is set to `info`. You
 can use the following configuration as an example.
 
+By default, events emit with eventime > 5seconds since catching are not collected.
+You can set this period with trottlePeriod in seconds. Consider to increase time of seconds to catch more events like "Backoff".
+
 ```yaml
 logLevel: error
 logFormat: json
+trottlePeriod: 5
 route:
   routes:
     - match:
@@ -234,14 +251,28 @@ Kafka is a popular tool used for real-time data pipelines. You can combine it wi
 receivers:
   - name: "kafka"
     kafka:
+      clientId: "kubernetes"
       topic: "kube-event"
       brokers:
         - "localhost:9092"
+      compressionCodec: "snappy"
       tls:
-        enable: false
+        enable: true
         certFile: "kafka-client.crt"
         keyFile: "kafka-client.key"
         caFile: "kafka-ca.crt"
+      sasl:
+        enable: true
+        username: "kube-event-producer"
+        passsord: "kube-event-producer-password"
+      layout: #optionnal
+        kind: {{ .InvolvedObject.Kind }}
+        namespace: {{ .InvolvedObject.Namespace }}
+        name: {{ .InvolvedObject.Name }}
+        reason: {{ .Reason }}
+        message: {{ .Message }}
+        type: {{ .Type }}
+        createdAt: {{ .GetTimestampISO8601 }}
 ```
 
 ### OpsCenter
@@ -411,10 +442,7 @@ receivers:
 
 ```
 
-
 ### Planned Receivers
 
-- AWS Firehose
 - Splunk
 - Redis
-- Logstash(Upd Receiver?)

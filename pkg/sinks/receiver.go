@@ -12,6 +12,7 @@ type ReceiverConfig struct {
 	Stdout        *StdoutConfig        `yaml:"stdout"`
 	Elasticsearch *ElasticsearchConfig `yaml:"elasticsearch"`
 	Kinesis       *KinesisConfig       `yaml:"kinesis"`
+	Firehose      *FirehoseConfig      `yaml:"firehose"`
 	Opsgenie      *OpsgenieConfig      `yaml:"opsgenie"`
 	SQS           *SQSConfig           `yaml:"sqs"`
 	SNS           *SNSConfig           `yaml:"sns"`
@@ -67,6 +68,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 
 	if r.Kinesis != nil {
 		return NewKinesisSink(r.Kinesis)
+	}
+
+	if r.Firehose != nil {
+		return NewFirehoseSink(r.Firehose)
 	}
 
 	if r.Opsgenie != nil {

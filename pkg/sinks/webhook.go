@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 )
 
 type WebhookConfig struct {
 	Endpoint string                 `yaml:"endpoint"`
+	TLS      TLS                    `yaml:"tls"`
 	Layout   map[string]interface{} `yaml:"layout"`
 	Headers  map[string]string      `yaml:"headers"`
 }
@@ -41,8 +44,15 @@ func (w *Webhook) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	for k, v := range w.cfg.Headers {
 		req.Header.Add(k, v)
 	}
-
-	resp, err := http.DefaultClient.Do(req)
+	tlsClientConfig, err := setupTLS(&w.cfg.TLS)
+	if err != nil {
+		return fmt.Errorf("failed to setup TLS: %w", err)
+	}
+	client := http.DefaultClient
+	client.Transport = &http.Transport{
+		TLSClientConfig: tlsClientConfig,
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}

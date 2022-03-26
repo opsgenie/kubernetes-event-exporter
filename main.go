@@ -57,13 +57,17 @@ func main() {
 		log.Fatal().Str("log_format", cfg.LogFormat).Msg("Unknown log format")
 	}
 
+	if cfg.ThrottlePeriod == 0 {
+		cfg.ThrottlePeriod = 5
+	}
+
 	kubeconfig, err := kube.GetKubernetesConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot get kubeconfig")
 	}
 
 	engine := exporter.NewEngine(&cfg, &exporter.ChannelBasedReceiverRegistry{})
-	w := kube.NewEventWatcher(kubeconfig, cfg.Namespace, engine.OnEvent)
+	w := kube.NewEventWatcher(kubeconfig, cfg.Namespace, cfg.ThrottlePeriod, engine.OnEvent)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	leaderLost := make(chan bool)
