@@ -32,9 +32,12 @@ func NewAnnotationCache(kubeconfig *rest.Config) *AnnotationCache {
 }
 
 func (a *AnnotationCache) GetAnnotationsWithCache(reference *v1.ObjectReference) (map[string]string, error) {
-	uid := reference.UID
+	cacheKey := string(reference.UID)
+	if len(cacheKey) == 0 {
+		cacheKey = reference.Name
+	}
 
-	if val, ok := a.cache.Get(uid); ok {
+	if val, ok := a.cache.Get(cacheKey); ok {
 		return val.(map[string]string), nil
 	}
 
@@ -46,13 +49,13 @@ func (a *AnnotationCache) GetAnnotationsWithCache(reference *v1.ObjectReference)
 				delete(annotations, key)
 			}
 		}
-		a.cache.Add(uid, annotations)
+		a.cache.Add(cacheKey, annotations)
 		return annotations, nil
 	}
 
 	if errors.IsNotFound(err) {
 		var empty map[string]string
-		a.cache.Add(uid, empty)
+		a.cache.Add(cacheKey, empty)
 		return nil, nil
 	}
 
