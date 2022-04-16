@@ -33,7 +33,7 @@ func NewEventWatcher(config *rest.Config, namespace string, throttlePeriod int64
 		labelCache:      NewLabelCache(config),
 		annotationCache: NewAnnotationCache(config),
 		fn:              fn,
-		throttlePeriod:  time.Second*time.Duration(throttlePeriod),
+		throttlePeriod:  time.Second * time.Duration(throttlePeriod),
 	}
 
 	informer.AddEventHandler(watcher)
@@ -54,7 +54,11 @@ func (e *EventWatcher) OnUpdate(oldObj, newObj interface{}) {
 func (e *EventWatcher) onEvent(event *corev1.Event) {
 	// TODO: Re-enable this after development
 	// It's probably an old event we are catching, it's not the best way but anyways
-	if time.Since(event.LastTimestamp.Time) > e.throttlePeriod {
+	timestamp := event.LastTimestamp.Time
+	if timestamp.IsZero() {
+		timestamp = event.EventTime.Time
+	}
+	if time.Since(timestamp) > e.throttlePeriod {
 		return
 	}
 
