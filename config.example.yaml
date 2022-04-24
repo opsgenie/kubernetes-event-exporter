@@ -102,3 +102,11 @@ receivers:
       network: "tcp"
       address: "127.0.0.1:11514"
       tag: "k8s.event"
+  - name: "zulip"
+    zulip:
+      endpoint: "https://company.zulipchat.com/api/v1/messages"
+      username: "bot@company.zulipchat.com"
+      password: "APIKey"
+      type: "stream"
+      to: "stream-name"
+      topic: "topic-name"
