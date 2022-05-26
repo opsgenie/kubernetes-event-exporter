@@ -106,7 +106,7 @@ receivers:
       hosts:
         - http://localhost:9200
       index: kube-events
-      # Ca be used optionally for time based indices, accepts Go time formatting directives
+      # Can be used optionally for time based indices, accepts Go time formatting directives
       indexFormat: "kube-events-{2006-01-02}"
       username: # optional
       password: # optional
