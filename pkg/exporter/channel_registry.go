@@ -3,6 +3,7 @@ package exporter
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 	"github.com/opsgenie/kubernetes-event-exporter/pkg/sinks"
@@ -15,9 +16,10 @@ import (
 // and we might need a mechanism to drop the vents
 // On closing, the registry sends a signal on all exit channels, and then waits for all to complete.
 type ChannelBasedReceiverRegistry struct {
-	ch     map[string]chan kube.EnhancedEvent
-	exitCh map[string]chan interface{}
-	wg     *sync.WaitGroup
+	ch                map[string]chan kube.EnhancedEvent
+	exitCh            map[string]chan interface{}
+	wg                *sync.WaitGroup
+	SendTimeoutMillis int64
 }
 
 func (r *ChannelBasedReceiverRegistry) SendEvent(name string, event *kube.EnhancedEvent) {
@@ -27,7 +29,11 @@ func (r *ChannelBasedReceiverRegistry) SendEvent(name string, event *kube.Enhanc
 	}
 
 	go func() {
-		ch <- *event
+		select {
+		case ch <- *event:
+		case <-time.After(time.Duration(r.SendTimeoutMillis) * time.Millisecond):
+			// drop event
+		}
 	}()
 }
 
