@@ -1,3 +1,8 @@
+
+# Important Update 
+
+This repository has been deprecated. Please visit https://github.com/resmoio/kubernetes-event-exporter 
+
 # kubernetes-event-exporter
 
 > This tool is presented at [KubeCon 2019 San Diego](https://kccncna19.sched.com/event/6aa61eca397e4ff2bdbb2845e5aebb81).
