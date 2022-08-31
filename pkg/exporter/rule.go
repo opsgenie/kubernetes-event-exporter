@@ -15,18 +15,19 @@ func matchString(pattern, s string) bool {
 
 // Rule is for matching an event
 type Rule struct {
-	Labels      map[string]string
-	Annotations map[string]string
-	Message     string
-	APIVersion  string
-	Kind        string
-	Namespace   string
-	Reason      string
-	Type        string
-	MinCount    int32
-	Component   string
-	Host        string
-	Receiver    string
+	Labels          map[string]string
+	Annotations     map[string]string
+	NamespaceLabels map[string]string
+	Message         string
+	APIVersion      string
+	Kind            string
+	Namespace       string
+	Reason          string
+	Type            string
+	MinCount        int32
+	Component       string
+	Host            string
+	Receiver        string
 }
 
 // MatchesEvent compares the rule to an event and returns a boolean value to indicate
@@ -74,6 +75,20 @@ func (r *Rule) MatchesEvent(ev *kube.EnhancedEvent) bool {
 	if r.Annotations != nil && len(r.Annotations) > 0 {
 		for k, v := range r.Annotations {
 			if val, ok := ev.InvolvedObject.Annotations[k]; !ok {
+				return false
+			} else {
+				matches := matchString(v, val)
+				if !matches {
+					return false
+				}
+			}
+		}
+	}
+
+	// NamespaceLabels are also mutually exclusive, they all need to be present
+	if r.NamespaceLabels != nil && len(r.NamespaceLabels) > 0 {
+		for k, v := range r.NamespaceLabels {
+			if val, ok := ev.InvolvedObject.NamespaceLabels[k]; !ok {
 				return false
 			} else {
 				matches := matchString(v, val)
