@@ -42,7 +42,16 @@ func (w *Webhook) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	}
 	req.Header.Add("Content-Type", "application/json")
 	for k, v := range w.cfg.Headers {
-		req.Header.Add(k, v)
+		for k, v := range w.cfg.Headers {
+			realValue, err := GetString(ev, v)
+			if err != nil {
+				log.Debug().Err(err).Msgf("parse template failed: %s", v)
+				req.Header.Add(k, v)
+			} else {
+				log.Debug().Msgf("request header: {%s: %s}", k, realValue)
+				req.Header.Add(k, realValue)
+			}
+		}
 	}
 	tlsClientConfig, err := setupTLS(&w.cfg.TLS)
 	if err != nil {
