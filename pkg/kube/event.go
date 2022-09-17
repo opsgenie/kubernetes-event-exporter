@@ -2,9 +2,10 @@ package kube
 
 import (
 	"encoding/json"
-	corev1 "k8s.io/api/core/v1"
 	"strings"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 type EnhancedEvent struct {
@@ -50,10 +51,20 @@ func (e *EnhancedEvent) ToJSON() []byte {
 }
 
 func (e *EnhancedEvent) GetTimestampMs() int64 {
-	return e.FirstTimestamp.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
+	timestamp := e.FirstTimestamp.Time
+	if timestamp.IsZero() {
+		timestamp = e.EventTime.Time
+	}
+
+	return timestamp.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 }
 
 func (e *EnhancedEvent) GetTimestampISO8601() string {
+	timestamp := e.FirstTimestamp.Time
+	if timestamp.IsZero() {
+		timestamp = e.EventTime.Time
+	}
+
 	layout := "2006-01-02T15:04:05.000Z"
-	return e.FirstTimestamp.Format(layout)
+	return timestamp.Format(layout)
 }
