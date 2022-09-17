@@ -3,17 +3,21 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/opsgenie/kubernetes-event-exporter/pkg/exporter"
-	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/exporter"
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v2"
 )
+
+// How long to wait for an event to be received by a sink channel
+const defaultSendTimeoutMillis = 10000
 
 var (
 	conf = flag.String("conf", "config.yaml", "The config path file")
@@ -61,12 +65,16 @@ func main() {
 		cfg.ThrottlePeriod = 5
 	}
 
+	if cfg.SendTimeoutMillis == 0 {
+		cfg.SendTimeoutMillis = defaultSendTimeoutMillis
+	}
+
 	kubeconfig, err := kube.GetKubernetesConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot get kubeconfig")
 	}
 
-	engine := exporter.NewEngine(&cfg, &exporter.ChannelBasedReceiverRegistry{})
+	engine := exporter.NewEngine(&cfg, &exporter.ChannelBasedReceiverRegistry{SendTimeoutMillis: cfg.SendTimeoutMillis})
 	w := kube.NewEventWatcher(kubeconfig, cfg.Namespace, cfg.ThrottlePeriod, engine.OnEvent)
 
 	ctx, cancel := context.WithCancel(context.Background())
