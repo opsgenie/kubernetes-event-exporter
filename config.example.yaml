@@ -27,6 +27,11 @@ receivers:
       hosts:
         - "http://localhost:9200"
       indexFormat: "kube-events-{2006-01-02}"
+  - name: "opensearch-dump"
+      opensearch:
+        hosts:
+          - "http://localhost:9200"
+        indexFormat: "kube-events-{2006-01-02}"
   - name: "alert"
     opsgenie:
       apiKey: ""
