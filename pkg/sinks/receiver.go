@@ -22,6 +22,8 @@ type ReceiverConfig struct {
 	Opscenter     *OpsCenterConfig     `yaml:"opscenter"`
 	Teams         *TeamsConfig         `yaml:"teams"`
 	BigQuery      *BigQueryConfig      `yaml:"bigquery"`
+	Udp 		  *UDPConfig		   `yaml:"udp"`
+=======
 	EventBridge   *EventBridgeConfig   `yaml:"eventbridge"`
 	Pipe          *PipeConfig          `yaml:"pipe"`
 }
@@ -108,7 +110,11 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 		return NewBigQuerySink(r.BigQuery)
 	}
 
-	if r.EventBridge != nil {
+	if r.Udp != nil{
+		return NewUDPClient(r.Udp)
+  }
+  
+  if r.EventBridge != nil {
 		return NewEventBridgeSink(r.EventBridge)
 	}
 
