@@ -31,16 +31,19 @@ func NewLabelCache(kubeconfig *rest.Config) (*LabelCache) {
 }
 
 func (l *LabelCache) GetLabelsWithCache(reference *v1.ObjectReference) (map[string]string, error) {
-	uid := reference.UID
+	cacheKey := string(reference.UID)
+	if len(cacheKey) == 0 {
+		cacheKey = reference.Name
+	}
 
-	if val, ok := l.cache.Get(uid); ok {
+	if val, ok := l.cache.Get(cacheKey); ok {
 		return val.(map[string]string), nil
 	}
 
 	obj, err := GetObject(reference, l.clientset, l.dynClient)
 	if err == nil {
 		labels := obj.GetLabels()
-		l.cache.Add(uid, labels)
+		l.cache.Add(cacheKey, labels)
 		return labels, nil
 	}
 
@@ -48,7 +51,7 @@ func (l *LabelCache) GetLabelsWithCache(reference *v1.ObjectReference) (map[stri
 		// There can be events without the involved objects existing, they seem to be not garbage collected?
 		// Marking it nil so that we can return faster
 		var empty map[string]string
-		l.cache.Add(uid, empty)
+		l.cache.Add(cacheKey, empty)
 		return nil, nil
 	}
 
