@@ -24,6 +24,7 @@ type ReceiverConfig struct {
 	BigQuery      *BigQueryConfig      `yaml:"bigquery"`
 	EventBridge   *EventBridgeConfig   `yaml:"eventbridge"`
 	Pipe          *PipeConfig          `yaml:"pipe"`
+	Zulip         *ZulipConfig         `yaml:"zulip"`
 }
 
 func (r *ReceiverConfig) Validate() error {
@@ -110,6 +111,10 @@ func (r *ReceiverConfig) GetSink() (Sink, error) {
 
 	if r.EventBridge != nil {
 		return NewEventBridgeSink(r.EventBridge)
+	}
+
+	if r.Zulip != nil {
+		return NewZulip(r.Zulip)
 	}
 
 	return nil, errors.New("unknown sink")
