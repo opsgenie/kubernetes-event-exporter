@@ -3,9 +3,12 @@ package sinks
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/Masterminds/sprig"
-	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
+	"encoding/xml"
 	"text/template"
+
+	"github.com/Masterminds/sprig"
+	"github.com/clbanning/mxj"
+	"github.com/opsgenie/kubernetes-event-exporter/pkg/kube"
 )
 
 func GetString(event *kube.EnhancedEvent, text string) (string, error) {
@@ -97,4 +100,52 @@ func serializeEventWithLayout(layout map[string]interface{}, ev *kube.EnhancedEv
 		toSend = ev.ToJSON()
 	}
 	return toSend, nil
+}
+
+func serializeXMLEventWithLayout(layout map[string]interface{}, ev *kube.EnhancedEvent) ([]byte, error) {
+	var (
+		err     error
+		toSend  []byte
+		obj     interface{}
+		rootTag string = mxj.DefaultRootTag
+	)
+
+	if layout != nil {
+		res, err := convertLayoutTemplate(layout, ev)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(res) == 1 {
+
+			for k, v := range res {
+				rootTag = k
+				obj = v
+			}
+		} else {
+
+			obj = res
+		}
+
+	} else {
+		// convert event to map
+		// TODO: create benchmark to check if reflect version is more performant
+		mrv := make(map[string]interface{})
+		jsonRepr, err := json.Marshal(ev)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(jsonRepr, &mrv)
+		if err != nil {
+			return nil, err
+		}
+		obj = mrv
+	}
+
+	toSend, err = mxj.AnyXml(obj, rootTag)
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(xml.Header + string(toSend)), nil
 }
