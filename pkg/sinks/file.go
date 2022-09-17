@@ -15,6 +15,7 @@ type FileConfig struct {
 	MaxSize    int                    `yaml:"maxsize"`
 	MaxAge     int                    `yaml:"maxage"`
 	MaxBackups int                    `yaml:"maxbackups"`
+	DeDot      bool                   `yaml:"deDot"`
 }
 
 func (f *FileConfig) Validate() error {
@@ -25,6 +26,7 @@ type File struct {
 	writer  io.WriteCloser
 	encoder *json.Encoder
 	layout  map[string]interface{}
+	DeDot   bool
 }
 
 func NewFileSink(config *FileConfig) (*File, error) {
@@ -39,6 +41,7 @@ func NewFileSink(config *FileConfig) (*File, error) {
 		writer:  writer,
 		encoder: json.NewEncoder(writer),
 		layout:  config.Layout,
+		DeDot: config.DeDot,
 	}, nil
 }
 
@@ -47,6 +50,10 @@ func (f *File) Close() {
 }
 
 func (f *File) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
+	if f.DeDot {
+		de := ev.DeDot()
+		ev = &de
+	}
 	if f.layout == nil {
 		return f.encoder.Encode(ev)
 	}
