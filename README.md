@@ -144,6 +144,7 @@ receivers:
   - name: "slack"
     slack:
       token: YOUR-API-TOKEN-HERE
+      endpoint: YOUR-WEBHOOK-ENDPOINT-HERE
       channel: "@{{ .InvolvedObject.Labels.owner }}"
       message: "{{ .Message }}"
       color: # optional
@@ -156,6 +157,8 @@ receivers:
         object: "{{ .Namespace }}"
 
 ```
+
+The bot `token` along with the `channel` field can be used for authentication. Alternatively, `endpoint` field can be used to define the webhook url for a given channel. In case both the fields `token` and `endpoint` are provided, the bot-token will be used for authentication.
 
 ### Kinesis
 
